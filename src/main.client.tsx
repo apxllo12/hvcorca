@@ -31,12 +31,41 @@ function render(app: ScreenGui) {
 		protect(app);
 	}
 
+	let guiParent: Instance | undefined;
+	
 	if (IS_DEV) {
-		app.Parent = Players.LocalPlayer.WaitForChild("PlayerGui");
+		// Wait for PlayerGui with fallback
+		const playerGui = Players.LocalPlayer.WaitForChild("PlayerGui", 10);
+		if (playerGui) {
+			guiParent = playerGui;
+		}
 	} else if (gethui) {
-		app.Parent = gethui();
+		// Try gethui first (best for exploits)
+		const [success, result] = pcall(gethui) as [boolean, Instance?];
+		if (success && result) {
+			guiParent = result;
+		}
+	}
+	
+	// Fallback to CoreGui
+	if (!guiParent) {
+		const [success, result] = pcall(() => game.GetService("CoreGui")) as [boolean, Instance?];
+		if (success && result) {
+			guiParent = result;
+		}
+	}
+	
+	// Last resort: create new ScreenGui
+	if (!guiParent) {
+		warn("[Havoc] Could not find GUI parent, creating new one");
+		guiParent = Make("ScreenGui", { IgnoreGuiInset: true });
+		guiParent.Parent = Players.LocalPlayer.WaitForChild("PlayerGui", 10);
+	}
+	
+	if (guiParent) {
+		app.Parent = guiParent;
 	} else {
-		app.Parent = game.GetService("CoreGui");
+		warn("[Havoc] Failed to render app - no parent found");
 	}
 }
 

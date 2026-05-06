@@ -14,7 +14,14 @@ export async function request(requestOptions: RequestAsyncRequest): Promise<Requ
 }
 
 export async function get(url: string, requestType?: Enum.HttpRequestType): Promise<string> {
-	return game.HttpGetAsync(url, requestType);
+	const [ok, result] = pcall(() => {
+		return game.HttpGetAsync(url, requestType);
+	});
+	if (!ok) {
+		warn("[HTTP] GET failed for: " + url);
+		return "";
+	}
+	return result;
 }
 
 export async function post(
@@ -23,5 +30,12 @@ export async function post(
 	contentType?: string,
 	requestType?: Enum.HttpRequestType,
 ): Promise<string> {
-	return game.HttpPostAsync(url, data, contentType, requestType);
+	const [ok, result] = pcall(() => {
+		return game.HttpPostAsync(url, data, contentType, requestType);
+	});
+	if (!ok) {
+		warn("[HTTP] POST failed for: " + url);
+		return "";
+	}
+	return result;
 }
