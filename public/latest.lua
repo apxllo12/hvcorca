@@ -2784,8 +2784,8 @@ newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havo
 		local hovered, setHovered = useState(false)
 		local highlightMap = theme.highlight
 		local accent = highlightMap[action] or theme.button.background
-		local background = useSpring(if active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})
-		local foreground = useSpring(if active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.button.foreground, {})
+		local background = useSpring((function() if active then return accent elseif hovered then return theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else return theme.button.background end end)(), {})
+		local foreground = useSpring((function() if active and theme.button.foregroundAccent then return theme.button.foregroundAccent else return theme.button.foreground end end)(), {})
 		return Roact.createElement(BrightButton, {
 			onActivate = function()
 				if active and canDeactivate then
@@ -2813,7 +2813,7 @@ newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havo
 			Roact.createElement("ImageLabel", {
 				Image = image,
 				ImageColor3 = foreground,
-				ImageTransparency = useSpring(if active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),
+				ImageTransparency = useSpring((function() if active then return 0 elseif hovered then return theme.button.foregroundTransparency - 0.25 else return theme.button.foregroundTransparency end end)(), {}),
 				Size = px(36, 36),
 				Position = px(12, 6),
 				BackgroundTransparency = 1,
@@ -3324,7 +3324,7 @@ newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", f
 		local _attributes = {
 			anchor = Vector2.new(0, 1),
 			size = size,
-			position = useSpring(if isActive then position else positionWhenHidden, {
+			position = useSpring((function() if isActive then return position else return positionWhenHidden end end)(), {
 				frequency = 2,
 				dampingRatio = 0.8,
 			}),
@@ -8781,7 +8781,7 @@ newModule("Clock", "ModuleScript", "Havoc.views.Clock.Clock", "Havoc.views.Clock
 		local _attributes = {}
 		local _arg0 = px(textWidth.X + CLOCK_PADDING, 0)
 		_attributes.Size = MIN_CLOCK_SIZE + _arg0
-		_attributes.Position = useSpring(if isOpen then UDim2.new(0, 0, 1, 0) else UDim2.new(0, 0, 1, 48 + 56 + 20), {})
+		_attributes.Position = useSpring((function() if isOpen then return UDim2.new(0, 0, 1, 0) else return UDim2.new(0, 0, 1, 48 + 56 + 20) end end)(), {})
 		_attributes.AnchorPoint = Vector2.new(0, 1)
 		_attributes.BackgroundTransparency = 1
 		local _children = {
@@ -8911,7 +8911,7 @@ newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard.Dashboard", "Havoc
 			Roact.createElement("Frame", {
 				Size = scale(1, 1),
 				BackgroundColor3 = hex("#000000"),
-				BackgroundTransparency = useSpring(if isOpen then 0 else 1, {}),
+				BackgroundTransparency = useSpring((function() if isOpen then return 0 else return 1 end end)(), {})),
 				BorderSizePixel = 0,
 			}, {
 				Roact.createElement("UIGradient", {
@@ -8997,11 +8997,11 @@ newModule("Hint", "ModuleScript", "Havoc.views.Hint.Hint", "Havoc.views.Hint", f
 			TextXAlignment = "Right",
 			TextYAlignment = "Bottom",
 			TextColor3 = hex("#FFFFFF"),
-			TextTransparency = useSpring(if isHintVisible then 0.4 else 1, {}),
+			TextTransparency = useSpring((function() if isHintVisible then return 0.4 else return 1 end end)(), {})),
 			Font = "GothamSemibold",
 			TextSize = 18,
 			BackgroundTransparency = 1,
-			Position = useSpring(if isHintVisible then scale(1, 1) else UDim2.new(1, 0, 1, 48), {}),
+			Position = useSpring((function() if isHintVisible then return scale(1, 1) else return UDim2.new(1, 0, 1, 48) end end)(), {})),
 		}, {
 			Roact.createElement("UIScale", {
 				Scale = scaleFactor,
@@ -9065,7 +9065,7 @@ newModule("Navbar", "ModuleScript", "Havoc.views.Navbar.Navbar", "Havoc.views.Na
 		})
 		local _attributes = {
 			Size = NAVBAR_SIZE,
-			Position = useSpring(if isOpen then UDim2.new(0.5, 0, 1, -20) else UDim2.new(0.5, 0, 1, 100), {}),
+			Position = useSpring((function() if isOpen then return UDim2.new(0.5, 0, 1, -20) else return UDim2.new(0.5, 0, 1, 100) end end)(), {})),
 			AnchorPoint = Vector2.new(0.5, 1),
 			BackgroundTransparency = 1,
 		}
@@ -9218,7 +9218,7 @@ newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.vi
 				Roact.createElement("ImageLabel", {
 					Image = PAGE_TO_ICON[page],
 					ImageColor3 = theme.foreground,
-					ImageTransparency = useSpring(if isActive then 0 elseif isHovered then 0.3 else 0.6, {
+					ImageTransparency = useSpring((function() if isActive then return 0 elseif 0.3 then return 0.6 else return { end end)(), isActive
 						frequency = 4,
 						dampingRatio = 1,
 					}),
@@ -9599,17 +9599,17 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 		local textSize = useMemo(function()
 			return TextService:GetTextSize(text, 14, Enum.Font.GothamBold, Vector2.new(1000, ENTRY_HEIGHT))
 		end, { text })
-		local textScrollOffset = useLinear(if hovered then ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X else 0, {
+		local textScrollOffset = useLinear((function() if hovered then return ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X else return 0 end end)(), {
 			velocity = if hovered then 40 else 150,
 		}):map(function(x)
 			return UDim.new(0, math.min(x, 0))
 		end)
-		local background = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})
-		local dropshadow = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.dropshadow:Lerp(theme.accent, 0.5) else theme.dropshadow, {})
-		local foreground = useSpring(if isSelected and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})
+		local background = useSpring((function() if isSelected then return theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else return theme.background end end)(), {}))
+		local dropshadow = useSpring((function() if isSelected then return theme.accent elseif hovered then theme.backgroundHovered or theme.dropshadow:Lerp(theme.accent, 0.5) else return theme.dropshadow end end)(), {}))
+		local foreground = useSpring((function() if isSelected and theme.foregroundAccent then return theme.foregroundAccent else return theme.foreground end end)(), {}))
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
+			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
 			zIndex = index,
 		}
 		local _children = {
@@ -9618,7 +9618,7 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring(if isSelected then theme.glowTransparency elseif hovered then lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) else theme.dropshadowTransparency, {}),
+				transparency = useSpring((function() if isSelected then return theme.glowTransparency elseif hovered then lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) else return theme.dropshadowTransparency end end)(), {})),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -9632,7 +9632,7 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 				TextColor3 = foreground,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Center,
-				TextTransparency = useSpring(if isSelected then 0 elseif hovered then theme.foregroundTransparency / 2 else theme.foregroundTransparency, {}),
+				TextTransparency = useSpring((function() if isSelected then return 0 elseif hovered then theme.foregroundTransparency / 2 else return theme.foregroundTransparency end end)(), {})),
 				BackgroundTransparency = 1,
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
@@ -9838,7 +9838,7 @@ newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivi
 		local _length = #_children
 		local _attributes_1 = {
 			anchor = Vector2.new(0, 1),
-			size = useSpring(if #games > 0 then UDim2.new(1, 0, 0, 344) else UDim2.new(1, 0, 0, 0), {}),
+			size = useSpring((function() if #games > 0 then return UDim2.new(1, 0, 0, 344) else return UDim2.new(1, 0, 0, 0) end end)(), {})),
 			position = scale(0, 1),
 		}
 		local _children_1 = {}
@@ -9899,14 +9899,14 @@ newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.F
 		local isHovered, setHovered = useState(false)
 		local avatar = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. (tostring(friend.VisitorId) .. "&width=48&height=48&format=png")
 		local _attributes = {
-			size = useSpring(if isHovered then px(96, 48) else px(48, 48), FRIEND_SPRING_OPTIONS),
+			size = useSpring((function() if isHovered then return px(96, 48) else return px(48, 48) end end)(), FRIEND_SPRING_OPTIONS),
 		}
 		local _children = {
 			Roact.createElement("ImageLabel", {
 				Image = "rbxassetid://8992244272",
-				ImageColor3 = useSpring(if isHovered then theme.accent else theme.dropshadow, FRIEND_SPRING_OPTIONS),
-				ImageTransparency = useSpring(if isHovered then theme.glowTransparency else theme.dropshadowTransparency, FRIEND_SPRING_OPTIONS),
-				Size = useSpring(if isHovered then px(88 + 36, 74) else px(76, 74), FRIEND_SPRING_OPTIONS),
+				ImageColor3 = useSpring((function() if isHovered then return theme.accent else return theme.dropshadow end end)(), FRIEND_SPRING_OPTIONS),
+				ImageTransparency = useSpring((function() if isHovered then return theme.glowTransparency else return theme.dropshadowTransparency end end)(), FRIEND_SPRING_OPTIONS),
+				Size = useSpring((function() if isHovered then return px(88 + 36, 74) else return px(76, 74) end end)(), FRIEND_SPRING_OPTIONS),
 				Position = px(-14, -10),
 				ScaleType = "Slice",
 				SliceCenter = Rect.new(Vector2.new(42, 42), Vector2.new(42, 42)),
@@ -9914,7 +9914,7 @@ newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.F
 			}),
 			Roact.createElement(Fill, {
 				radius = 24,
-				color = useSpring(if isHovered then theme.accent else theme.background, FRIEND_SPRING_OPTIONS),
+				color = useSpring((function() if isHovered then return theme.accent else return theme.background end end)(), FRIEND_SPRING_OPTIONS),
 				transparency = theme.backgroundTransparency,
 			}),
 		}
@@ -10007,7 +10007,7 @@ newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.Gam
 			Image = gameActivity.thumbnail,
 			ScaleType = "Crop",
 			Size = px(278, 156),
-			Position = useSpring(if isVisible then px(24, index * (GAME_PADDING + 156)) else px(-278, index * (GAME_PADDING + 156)), {}),
+			Position = useSpring((function() if isVisible then return px(24, index * (GAME_PADDING + 156)) else return px(-278, index * (GAME_PADDING + 156)) end end)(), {})),
 			BackgroundTransparency = 1,
 		}
 		local _children = {
@@ -10286,9 +10286,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if showJoinDate then 0.2 else 1, {}),
+				TextTransparency = useSpring((function() if showJoinDate then return 0.2 else return 1 end end)(), {})),
 				Size = px(85, 48),
-				Position = useSpring(if showJoinDate then px(0, 0) else px(-20, 0), {}),
+				Position = useSpring((function() if showJoinDate then return px(0, 0) else return px(-20, 0) end end)(), {})),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10298,9 +10298,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if showFriendsJoined then 0.2 else 1, {}),
+				TextTransparency = useSpring((function() if showFriendsJoined then return 0.2 else return 1 end end)(), {})),
 				Size = px(85, 48),
-				Position = useSpring(if showFriendsJoined then px(97, 0) else px(97 - 20, 0), {}),
+				Position = useSpring((function() if showFriendsJoined then return px(97, 0) else return px(97 - 20, 0) end end)(), {})),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10310,9 +10310,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if showFriendsOnline then 0.2 else 1, {}),
+				TextTransparency = useSpring((function() if showFriendsOnline then return 0.2 else return 1 end end)(), {})),
 				Size = px(85, 48),
-				Position = useSpring(if showFriendsOnline then px(193, 0) else px(193 - 20, 0), {}),
+				Position = useSpring((function() if showFriendsOnline then return px(193, 0) else return px(193 - 20, 0) end end)(), {})),
 				BackgroundTransparency = 1,
 			}),
 		})
@@ -10438,8 +10438,8 @@ newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "
 		local hovered, setHovered = useState(false)
 		local highlightColors = theme.highlight
 		local accent = highlightColors[props.jobName] or theme.foreground
-		local buttonBackground = useSpring(if job.active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})
-		local buttonForeground = useSpring(if job.active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.foreground, {})
+		local buttonBackground = useSpring((function() if job.active then return accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else return theme.button.background end end)(), {}))
+		local buttonForeground = useSpring((function() if job.active and theme.button.foregroundAccent then return theme.button.foregroundAccent else return theme.foreground end end)(), {}))
 		return Roact.createElement(Canvas, {
 			size = px(278, 49),
 			position = px(0, props.position),
@@ -10503,7 +10503,7 @@ newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "
 					TextColor3 = buttonForeground,
 					TextXAlignment = "Center",
 					TextYAlignment = "Center",
-					TextTransparency = useSpring(if job.active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),
+					TextTransparency = useSpring((function() if job.active then return 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else return theme.button.foregroundTransparency end end)(), {})),
 					Size = scale(1, 1),
 					BackgroundTransparency = 1,
 				}),
@@ -10696,8 +10696,8 @@ newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerA
 			return _condition
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring(if active then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})
-		local foreground = useSpring(if active and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})
+		local background = useSpring((function() if active then return theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else return theme.background end end)(), {}))
+		local foreground = useSpring((function() if active and theme.foregroundAccent then return theme.foregroundAccent else return theme.foreground end end)(), {}))
 		return Roact.createElement(BrightButton, {
 			onActivate = function()
 				return dispatch(setJobActive(action, not active))
@@ -10721,7 +10721,7 @@ newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerA
 			Roact.createElement("ImageLabel", {
 				Image = icon,
 				ImageColor3 = foreground,
-				ImageTransparency = useSpring(if active then 0 elseif hovered then theme.foregroundTransparency - 0.25 else theme.foregroundTransparency, {}),
+				ImageTransparency = useSpring((function() if active then return 0 elseif hovered then theme.foregroundTransparency - 0.25 else return theme.foregroundTransparency end end)(), {})),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Size = px(36, 36),
 				Position = scale(0.5, 0.5),
@@ -10773,12 +10773,12 @@ newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLa
 				Font = "GothamBold",
 				TextSize = 16,
 				TextColor3 = theme.foreground,
-				TextTransparency = useSpring(if isVisible then 0 else 1, {
+				TextTransparency = useSpring((function() if isVisible then return 0 else return 1 end end)(), {
 					frequency = 2,
 				}),
 				TextXAlignment = "Left",
 				TextYAlignment = "Top",
-				Position = useSpring(if isVisible then px(24, offset) else px(0, offset), {}),
+				Position = useSpring((function() if isVisible then return px(24, offset) else return px(0, offset) end end)(), {})),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10787,10 +10787,10 @@ newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLa
 				Font = "GothamBold",
 				TextSize = 16,
 				TextColor3 = theme.foreground,
-				TextTransparency = useSpring(if isVisible then 0.4 else 1, {}),
+				TextTransparency = useSpring((function() if isVisible then return 0.4 else return 1 end end)(), {})),
 				TextXAlignment = "Left",
 				TextYAlignment = "Top",
-				Position = useSpring(if isVisible then px(24 + valueLength, offset) else px(0 + valueLength, offset), {}),
+				Position = useSpring((function() if isVisible then return px(24 + valueLength, offset) else return px(0 + valueLength, offset) end end)(), {})),
 				BackgroundTransparency = 1,
 			}),
 		})
@@ -10926,7 +10926,7 @@ newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.
 			Font = font,
 			TextColor3 = theme.foreground,
 			TextSize = size,
-			TextTransparency = useSpring(if isActive then transparency else 1, {
+			TextTransparency = useSpring((function() if isActive then return transparency else return 1 end end)(), {
 				frequency = 2,
 			}),
 			TextXAlignment = "Left",
@@ -11437,9 +11437,9 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 			return state.options.config[action]
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
-		local dropshadow = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
-		local foreground = useSpring(if active and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
+		local background = useSpring((function() if active then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
+		local dropshadow = useSpring((function() if active then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
+		local foreground = useSpring((function() if active and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
 			position = px(0, (PADDING + ENTRY_HEIGHT) * index),
@@ -11451,7 +11451,7 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring(if active then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
+				transparency = useSpring((function() if active then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11465,7 +11465,7 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 				TextColor3 = foreground,
 				TextXAlignment = "Left",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if active then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
+				TextTransparency = useSpring((function() if active then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
 				BackgroundTransparency = 1,
@@ -11669,12 +11669,12 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				handle:Disconnect()
 			end
 		end, { selected })
-		local background = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
-		local dropshadow = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
-		local foreground = useSpring(if selected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
+		local background = useSpring((function() if selected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
+		local dropshadow = useSpring((function() if selected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
+		local foreground = useSpring((function() if selected and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
+			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
 			zIndex = index,
 		}
 		local _children = {
@@ -11683,7 +11683,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring(if selected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
+				transparency = useSpring((function() if selected then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11697,7 +11697,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				TextColor3 = foreground,
 				TextXAlignment = "Left",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
+				TextTransparency = useSpring((function() if selected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
 				BackgroundTransparency = 1,
@@ -11710,7 +11710,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				TextColor3 = foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
+				TextTransparency = useSpring((function() if selected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
 				TextTruncate = "AtEnd",
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, 0, 0, 1),
@@ -11961,12 +11961,12 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 			return state.options.currentTheme == theme.name
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
-		local dropshadow = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
-		local foreground = useSpring(if isSelected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
+		local background = useSpring((function() if isSelected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
+		local dropshadow = useSpring((function() if isSelected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
+		local foreground = useSpring((function() if isSelected and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
+			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
 			zIndex = index,
 		}
 		local _children = {
@@ -11975,7 +11975,7 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring(if isSelected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
+				transparency = useSpring((function() if isSelected then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11989,7 +11989,7 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 				TextColor3 = foreground,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Center,
-				TextTransparency = useSpring(if isSelected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
+				TextTransparency = useSpring((function() if isSelected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
 				BackgroundTransparency = 1,
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
@@ -12467,7 +12467,7 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 		local _length = #_children
 		local _attributes_1 = {
 			anchor = Vector2.new(0.5, 0.5),
-			size = useSpring(if isHovered and not isPressed then UDim2.new(1, 48, 1, 48) else scale(1, 1), {
+			size = useSpring((function() if isHovered and not isPressed then return UDim2.new(1, 48, 1, 48) else return scale(1, 1) end end)(), {
 				frequency = 2,
 			}),
 			position = scale(0.5, 0.5),
@@ -12510,11 +12510,11 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 		_children_1[_length_1 + 2] = Roact.createElement(Fill, {
 			radius = 16,
 			color = hex("#ffffff"),
-			transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),
+			transparency = useSpring((function() if isHovered then return 0 else return 1 end end)(), shineSpringOptions),
 		}, {
 			Roact.createElement("UIGradient", {
 				Transparency = NumberSequence.new(0.75, 1),
-				Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),
+				Offset = useSpring((function() if isHovered then return Vector2.new(0, 0) else return Vector2.new(-1, -1) end end)(), shineSpringOptions),
 				Rotation = 45,
 			}),
 		})
@@ -12522,18 +12522,18 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 			radius = 18,
 			size = 3,
 			color = hex("#ffffff"),
-			transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),
+			transparency = useSpring((function() if isHovered then return 0 else return 1 end end)(), shineSpringOptions),
 		}, {
 			Roact.createElement("UIGradient", {
 				Transparency = NumberSequence.new(0.7, 0.9),
-				Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),
+				Offset = useSpring((function() if isHovered then return Vector2.new(0, 0) else return Vector2.new(-1, -1) end end)(), shineSpringOptions),
 				Rotation = 45,
 			}),
 		})
 		_children_1[_length_1 + 4] = Roact.createElement(Border, {
 			color = hex("#ffffff"),
 			radius = 16,
-			transparency = useSpring(if isHovered then 1 else 0.8, {}),
+			transparency = useSpring((function() if isHovered then return 1 else return 0.8 end end)(), {})),
 		})
 		_children[_length + 1] = Roact.createElement(Canvas, _attributes_1, _children_1)
 		_children[_length + 2] = Roact.createElement("TextButton", {
