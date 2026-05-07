@@ -2219,7 +2219,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 end, newEnv("Havoc.Promise"))() end)
 
-newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function () return setfenv(function()
+newModule("RuntimeLib", "ModuleScript", "Havoc.include.RuntimeLib", "Havoc", function () return setfenv(function()
 	local Promise = require(script.Parent.Promise)
 	
 	local RunService = game:GetService("RunService")
@@ -2450,7 +2450,7 @@ newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function ()
 	
 	return TS
 	
-end, newEnv("Havoc.RuntimeLib"))() end)
+end, newEnv("Havoc.include.RuntimeLib"))() end)
 
 newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () return setfenv(function()
 	
