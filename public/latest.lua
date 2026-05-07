@@ -167,7 +167,1255 @@ end
 
 newInstance("Havoc", "Folder", "Havoc", nil)
 
-newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () return setfenv(function()
+newModule("Binding", "ModuleScript", "Havoc.Binding", "Havoc.include", function () return setfenv(function()
+	local createSignal = require(script.Parent.createSignal)
+	local Symbol = require(script.Parent.Symbol)
+	local Type = require(script.Parent.Type)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	local BindingImpl = Symbol.named("BindingImpl")
+	
+	local BindingInternalApi = {}
+	
+	local bindingPrototype = {}
+	
+	function bindingPrototype:getValue()
+		return BindingInternalApi.getValue(self)
+	end
+	
+	function bindingPrototype:map(predicate)
+		return BindingInternalApi.map(self, predicate)
+	end
+	
+	local BindingPublicMeta = {
+		__index = bindingPrototype,
+		__tostring = function(self)
+			return string.format("RoactBinding(%s)", tostring(self:getValue()))
+		end,
+	}
+	
+	function BindingInternalApi.update(binding, newValue)
+		return binding[BindingImpl].update(newValue)
+	end
+	
+	function BindingInternalApi.subscribe(binding, callback)
+		return binding[BindingImpl].subscribe(callback)
+	end
+	
+	function BindingInternalApi.getValue(binding)
+		return binding[BindingImpl].getValue()
+	end
+	
+	function BindingInternalApi.create(initialValue)
+		local impl = {
+			value = initialValue,
+			changeSignal = createSignal(),
+		}
+	
+		function impl.subscribe(callback)
+			return impl.changeSignal:subscribe(callback)
+		end
+	
+		function impl.update(newValue)
+			impl.value = newValue
+			impl.changeSignal:fire(newValue)
+		end
+	
+		function impl.getValue()
+			return impl.value
+		end
+	
+		return setmetatable({
+			[Type] = Type.Binding,
+			[BindingImpl] = impl,
+		}, BindingPublicMeta), impl.update
+	end
+	
+	function BindingInternalApi.map(upstreamBinding, predicate)
+		if config.typeChecks then
+			assert(Type.of(upstreamBinding) == Type.Binding, "Expected arg #1 to be a binding")
+			assert(typeof(predicate) == "function", "Expected arg #1 to be a function")
+		end
+	
+		local impl = {}
+	
+		function impl.subscribe(callback)
+			return BindingInternalApi.subscribe(upstreamBinding, function(newValue)
+				callback(predicate(newValue))
+			end)
+		end
+	
+		function impl.update(newValue)
+			error("Bindings created by Binding:map(fn) cannot be updated directly", 2)
+		end
+	
+		function impl.getValue()
+			return predicate(upstreamBinding:getValue())
+		end
+	
+		return setmetatable({
+			[Type] = Type.Binding,
+			[BindingImpl] = impl,
+		}, BindingPublicMeta)
+	end
+	
+	function BindingInternalApi.join(upstreamBindings)
+		if config.typeChecks then
+			assert(typeof(upstreamBindings) == "table", "Expected arg #1 to be of type table")
+	
+			for key, value in pairs(upstreamBindings) do
+				if Type.of(value) ~= Type.Binding then
+					local message = (
+						"Expected arg #1 to contain only bindings, but key %q had a non-binding value"
+					):format(
+						tostring(key)
+					)
+					error(message, 2)
+				end
+			end
+		end
+	
+		local impl = {}
+	
+		local function getValue()
+			local value = {}
+	
+			for key, upstream in pairs(upstreamBindings) do
+				value[key] = upstream:getValue()
+			end
+	
+			return value
+		end
+	
+		function impl.subscribe(callback)
+			local disconnects = {}
+	
+			for key, upstream in pairs(upstreamBindings) do
+				disconnects[key] = BindingInternalApi.subscribe(upstream, function(newValue)
+					callback(getValue())
+				end)
+			end
+	
+			return function()
+				if disconnects == nil then
+					return
+				end
+	
+				for _, disconnect in pairs(disconnects) do
+					disconnect()
+				end
+	
+				disconnects = nil
+			end
+		end
+	
+		function impl.update(newValue)
+			error("Bindings created by joinBindings(...) cannot be updated directly", 2)
+		end
+	
+		function impl.getValue()
+			return getValue()
+		end
+	
+		return setmetatable({
+			[Type] = Type.Binding,
+			[BindingImpl] = impl,
+		}, BindingPublicMeta)
+	end
+	
+	return BindingInternalApi
+end, newEnv("Havoc.Binding"))() end)
+
+newModule("Component", "ModuleScript", "Havoc.Component", "Havoc.include", function () return setfenv(function()
+	local assign = require(script.Parent.assign)
+	local ComponentLifecyclePhase = require(script.Parent.ComponentLifecyclePhase)
+	local Type = require(script.Parent.Type)
+	local Symbol = require(script.Parent.Symbol)
+	local invalidSetStateMessages = require(script.Parent.invalidSetStateMessages)
+	local internalAssert = require(script.Parent.internalAssert)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	
+		Calling setState during certain lifecycle allowed methods has the potential
+		to create an infinitely updating component. Rather than time out, we exit
+		with an error if an unreasonable number of self-triggering updates occur
+	]]
+	local MAX_PENDING_UPDATES = 100
+	
+	local InternalData = Symbol.named("InternalData")
+	
+	local componentMissingRenderMessage = [[
+	The component %q is missing the `render` method.
+	`render` must be defined when creating a Roact component!]]
+	
+	local tooManyUpdatesMessage = [[
+	The component %q has reached the setState update recursion limit.
+	When using `setState` in `didUpdate`, make sure that it won't repeat infinitely!]]
+	
+	local componentClassMetatable = {}
+	
+	function componentClassMetatable:__tostring()
+		return self.__componentName
+	end
+	
+	local Component = {}
+	setmetatable(Component, componentClassMetatable)
+	
+	Component[Type] = Type.StatefulComponentClass
+	Component.__index = Component
+	Component.__componentName = "Component"
+	
+	
+		A method called by consumers of Roact to create a new component class.
+		Components can not be extended beyond this point, with the exception of
+		PureComponent.
+	]]
+	function Component:extend(name)
+		if config.typeChecks then
+			assert(Type.of(self) == Type.StatefulComponentClass, "Invalid `self` argument to `extend`.")
+			assert(typeof(name) == "string", "Component class name must be a string")
+		end
+	
+		local class = {}
+	
+		for key, value in pairs(self) do
+	
+	
+	
+			if key ~= "extend" then
+				class[key] = value
+			end
+		end
+	
+		class[Type] = Type.StatefulComponentClass
+		class.__index = class
+		class.__componentName = name
+	
+		setmetatable(class, componentClassMetatable)
+	
+		return class
+	end
+	
+	function Component:__getDerivedState(incomingProps, incomingState)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__getDerivedState`")
+		end
+	
+		local internalData = self[InternalData]
+		local componentClass = internalData.componentClass
+	
+		if componentClass.getDerivedStateFromProps ~= nil then
+			local derivedState = componentClass.getDerivedStateFromProps(incomingProps, incomingState)
+	
+			if derivedState ~= nil then
+				if config.typeChecks then
+					assert(typeof(derivedState) == "table", "getDerivedStateFromProps must return a table!")
+				end
+	
+				return derivedState
+			end
+		end
+	
+		return nil
+	end
+	
+	function Component:setState(mapState)
+		if config.typeChecks then
+			assert(Type.of(self) == Type.StatefulComponentInstance, "Invalid `self` argument to `extend`.")
+		end
+	
+		local internalData = self[InternalData]
+		local lifecyclePhase = internalData.lifecyclePhase
+	
+	
+			When preparing to update, rendering, or unmounting, it is not safe
+			to call `setState` as it will interfere with in-flight updates. It's
+			also disallowed during unmounting
+		]]
+		if lifecyclePhase == ComponentLifecyclePhase.ShouldUpdate or
+			lifecyclePhase == ComponentLifecyclePhase.WillUpdate or
+			lifecyclePhase == ComponentLifecyclePhase.Render or
+			lifecyclePhase == ComponentLifecyclePhase.WillUnmount
+		then
+			local messageTemplate = invalidSetStateMessages[internalData.lifecyclePhase]
+	
+			local message = messageTemplate:format(tostring(internalData.componentClass))
+	
+			error(message, 2)
+		end
+	
+		local pendingState = internalData.pendingState
+	
+		local partialState
+		if typeof(mapState) == "function" then
+			partialState = mapState(pendingState or self.state, self.props)
+	
+	
+			if partialState == nil then
+				return
+			end
+		elseif typeof(mapState) == "table" then
+			partialState = mapState
+		else
+			error("Invalid argument to setState, expected function or table", 2)
+		end
+	
+		local newState
+		if pendingState ~= nil then
+			newState = assign(pendingState, partialState)
+		else
+			newState = assign({}, self.state, partialState)
+		end
+	
+		if lifecyclePhase == ComponentLifecyclePhase.Init then
+	
+			local derivedState = self:__getDerivedState(self.props, newState)
+			self.state = assign(newState, derivedState)
+	
+		elseif lifecyclePhase == ComponentLifecyclePhase.DidMount or
+			lifecyclePhase == ComponentLifecyclePhase.DidUpdate or
+			lifecyclePhase == ComponentLifecyclePhase.ReconcileChildren
+		then
+	
+				During certain phases of the component lifecycle, it's acceptable to
+				allow `setState` but defer the update until we're done with ones in flight.
+				We do this by collapsing it into any pending updates we have.
+			]]
+			local derivedState = self:__getDerivedState(self.props, newState)
+			internalData.pendingState = assign(newState, derivedState)
+	
+		elseif lifecyclePhase == ComponentLifecyclePhase.Idle then
+	
+	
+	
+	
+			local virtualNode = internalData.virtualNode
+			local reconciler = internalData.reconciler
+			if config.tempFixUpdateChildrenReEntrancy then
+				reconciler.suspendParentEvents(virtualNode)
+			end
+	
+	
+			self:__update(nil, newState)
+	
+			if config.tempFixUpdateChildrenReEntrancy then
+				reconciler.resumeParentEvents(virtualNode)
+			end
+		else
+			local messageTemplate = invalidSetStateMessages.default
+	
+			local message = messageTemplate:format(tostring(internalData.componentClass))
+	
+			error(message, 2)
+		end
+	end
+	
+	
+		Returns the stack trace of where the element was created that this component
+		instance's properties are based on.
+	
+		Intended to be used primarily by diagnostic tools.
+	]]
+	function Component:getElementTraceback()
+		return self[InternalData].virtualNode.currentElement.source
+	end
+	
+	
+		Returns a snapshot of this component given the current props and state. Must
+		be overridden by consumers of Roact and should be a pure function with
+		regards to props and state.
+	
+		TODO (#199): Accept props and state as arguments.
+	]]
+	function Component:render()
+		local internalData = self[InternalData]
+	
+		local message = componentMissingRenderMessage:format(
+			tostring(internalData.componentClass)
+		)
+	
+		error(message, 0)
+	end
+	
+	
+		Retrieves the context value corresponding to the given key. Can return nil
+		if a requested context key is not present
+	]]
+	function Component:__getContext(key)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__getContext`")
+			internalAssert(key ~= nil, "Context key cannot be nil")
+		end
+	
+		local virtualNode = self[InternalData].virtualNode
+		local context = virtualNode.context
+	
+		return context[key]
+	end
+	
+	
+		Adds a new context entry to this component's context table (which will be
+		passed down to child components).
+	]]
+	function Component:__addContext(key, value)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__addContext`")
+		end
+		local virtualNode = self[InternalData].virtualNode
+	
+	
+	
+	
+	
+		if virtualNode.originalContext == nil then
+			virtualNode.originalContext = virtualNode.context
+		end
+	
+	
+	
+		local existing = virtualNode.context
+		virtualNode.context = assign({}, existing, { [key] = value })
+	end
+	
+	
+		Performs property validation if the static method validateProps is declared.
+		validateProps should follow assert's expected arguments:
+		(false, message: string) | true. The function may return a message in the
+		true case; it will be ignored. If this fails, the function will throw the
+		error.
+	]]
+	function Component:__validateProps(props)
+		if not config.propValidation then
+			return
+		end
+	
+		local validator = self[InternalData].componentClass.validateProps
+	
+		if validator == nil then
+			return
+		end
+	
+		if typeof(validator) ~= "function" then
+			error(("validateProps must be a function, but it is a %s.\nCheck the definition of the component %q."):format(
+				typeof(validator),
+				self.__componentName
+			))
+		end
+	
+		local success, failureReason = validator(props)
+	
+		if not success then
+			failureReason = failureReason or "<Validator function did not supply a message>"
+			error(("Property validation failed in %s: %s\n\n%s"):format(
+				self.__componentName,
+				tostring(failureReason),
+				self:getElementTraceback() or "<enable element tracebacks>"),
+			0)
+		end
+	end
+	
+	
+		An internal method used by the reconciler to construct a new component
+		instance and attach it to the given virtualNode.
+	]]
+	function Component:__mount(reconciler, virtualNode)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentClass, "Invalid use of `__mount`")
+			internalAssert(Type.of(virtualNode) == Type.VirtualNode, "Expected arg #2 to be of type VirtualNode")
+		end
+	
+		local currentElement = virtualNode.currentElement
+		local hostParent = virtualNode.hostParent
+	
+	
+	
+		local internalData = {
+			reconciler = reconciler,
+			virtualNode = virtualNode,
+			componentClass = self,
+			lifecyclePhase = ComponentLifecyclePhase.Init,
+		}
+	
+		local instance = {
+			[Type] = Type.StatefulComponentInstance,
+			[InternalData] = internalData,
+		}
+	
+		setmetatable(instance, self)
+	
+		virtualNode.instance = instance
+	
+		local props = currentElement.props
+	
+		if self.defaultProps ~= nil then
+			props = assign({}, self.defaultProps, props)
+		end
+	
+		instance:__validateProps(props)
+	
+		instance.props = props
+	
+		local newContext = assign({}, virtualNode.legacyContext)
+		instance._context = newContext
+	
+		instance.state = assign({}, instance:__getDerivedState(instance.props, {}))
+	
+		if instance.init ~= nil then
+			instance:init(instance.props)
+			assign(instance.state, instance:__getDerivedState(instance.props, instance.state))
+		end
+	
+	
+		virtualNode.legacyContext = instance._context
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.Render
+		local renderResult = instance:render()
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.ReconcileChildren
+		reconciler.updateVirtualNodeWithRenderResult(virtualNode, hostParent, renderResult)
+	
+		if instance.didMount ~= nil then
+			internalData.lifecyclePhase = ComponentLifecyclePhase.DidMount
+			instance:didMount()
+		end
+	
+		if internalData.pendingState ~= nil then
+	
+			instance:__update(nil, nil)
+		end
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.Idle
+	end
+	
+	
+		Internal method used by the reconciler to clean up any resources held by
+		this component instance.
+	]]
+	function Component:__unmount()
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__unmount`")
+		end
+	
+		local internalData = self[InternalData]
+		local virtualNode = internalData.virtualNode
+		local reconciler = internalData.reconciler
+	
+		if self.willUnmount ~= nil then
+			internalData.lifecyclePhase = ComponentLifecyclePhase.WillUnmount
+			self:willUnmount()
+		end
+	
+		for _, childNode in pairs(virtualNode.children) do
+			reconciler.unmountVirtualNode(childNode)
+		end
+	end
+	
+	
+		Internal method used by setState (to trigger updates based on state) and by
+		the reconciler (to trigger updates based on props)
+	
+		Returns true if the update was completed, false if it was cancelled by shouldUpdate
+	]]
+	function Component:__update(updatedElement, updatedState)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__update`")
+			internalAssert(
+				Type.of(updatedElement) == Type.Element or updatedElement == nil,
+				"Expected arg #1 to be of type Element or nil"
+			)
+			internalAssert(
+				typeof(updatedState) == "table" or updatedState == nil,
+				"Expected arg #2 to be of type table or nil"
+			)
+		end
+	
+		local internalData = self[InternalData]
+		local componentClass = internalData.componentClass
+	
+		local newProps = self.props
+		if updatedElement ~= nil then
+			newProps = updatedElement.props
+	
+			if componentClass.defaultProps ~= nil then
+				newProps = assign({}, componentClass.defaultProps, newProps)
+			end
+	
+			self:__validateProps(newProps)
+		end
+	
+		local updateCount = 0
+		repeat
+			local finalState
+			local pendingState = nil
+	
+	
+			if internalData.pendingState ~= nil then
+				pendingState = internalData.pendingState
+				internalData.pendingState = nil
+			end
+	
+	
+			if updatedState ~= nil or newProps ~= self.props then
+				if pendingState == nil then
+					finalState = updatedState or self.state
+				else
+					finalState = assign(pendingState, updatedState)
+				end
+	
+				local derivedState = self:__getDerivedState(newProps, finalState)
+	
+				if derivedState ~= nil then
+					finalState = assign({}, finalState, derivedState)
+				end
+	
+				updatedState = nil
+			else
+				finalState = pendingState
+			end
+	
+			if not self:__resolveUpdate(newProps, finalState) then
+	
+				return false
+			end
+	
+			updateCount = updateCount + 1
+	
+			if updateCount > MAX_PENDING_UPDATES then
+				error(tooManyUpdatesMessage:format(tostring(internalData.componentClass)), 3)
+			end
+		until internalData.pendingState == nil
+	
+		return true
+	end
+	
+	
+		Internal method used by __update to apply new props and state
+	
+		Returns true if the update was completed, false if it was cancelled by shouldUpdate
+	]]
+	function Component:__resolveUpdate(incomingProps, incomingState)
+		if config.internalTypeChecks then
+			internalAssert(Type.of(self) == Type.StatefulComponentInstance, "Invalid use of `__resolveUpdate`")
+		end
+	
+		local internalData = self[InternalData]
+		local virtualNode = internalData.virtualNode
+		local reconciler = internalData.reconciler
+	
+		local oldProps = self.props
+		local oldState = self.state
+	
+		if incomingProps == nil then
+			incomingProps = oldProps
+		end
+		if incomingState == nil then
+			incomingState = oldState
+		end
+	
+		if self.shouldUpdate ~= nil then
+			internalData.lifecyclePhase = ComponentLifecyclePhase.ShouldUpdate
+			local continueWithUpdate = self:shouldUpdate(incomingProps, incomingState)
+	
+			if not continueWithUpdate then
+				internalData.lifecyclePhase = ComponentLifecyclePhase.Idle
+				return false
+			end
+		end
+	
+		if self.willUpdate ~= nil then
+			internalData.lifecyclePhase = ComponentLifecyclePhase.WillUpdate
+			self:willUpdate(incomingProps, incomingState)
+		end
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.Render
+	
+		self.props = incomingProps
+		self.state = incomingState
+	
+		local renderResult = virtualNode.instance:render()
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.ReconcileChildren
+		reconciler.updateVirtualNodeWithRenderResult(virtualNode, virtualNode.hostParent, renderResult)
+	
+		if self.didUpdate ~= nil then
+			internalData.lifecyclePhase = ComponentLifecyclePhase.DidUpdate
+			self:didUpdate(oldProps, oldState)
+		end
+	
+		internalData.lifecyclePhase = ComponentLifecyclePhase.Idle
+		return true
+	end
+	
+	return Component
+end, newEnv("Havoc.Component"))() end)
+
+newModule("ComponentLifecyclePhase", "ModuleScript", "Havoc.ComponentLifecyclePhase", "Havoc.include", function () return setfenv(function()
+	local Symbol = require(script.Parent.Symbol)
+	local strict = require(script.Parent.strict)
+	
+	local ComponentLifecyclePhase = strict({
+	
+		Init = Symbol.named("init"),
+		Render = Symbol.named("render"),
+		ShouldUpdate = Symbol.named("shouldUpdate"),
+		WillUpdate = Symbol.named("willUpdate"),
+		DidMount = Symbol.named("didMount"),
+		DidUpdate = Symbol.named("didUpdate"),
+		WillUnmount = Symbol.named("willUnmount"),
+	
+	
+		ReconcileChildren = Symbol.named("reconcileChildren"),
+		Idle = Symbol.named("idle"),
+	}, "ComponentLifecyclePhase")
+	
+	return ComponentLifecyclePhase
+end, newEnv("Havoc.ComponentLifecyclePhase"))() end)
+
+newModule("Config", "ModuleScript", "Havoc.Config", "Havoc.include", function () return setfenv(function()
+	
+		Exposes an interface to set global configuration values for Roact.
+	
+		Configuration can only occur once, and should only be done by an application
+		using Roact, not a library.
+	
+		Any keys that aren't recognized will cause errors. Configuration is only
+		intended for configuring Roact itself, not extensions or libraries.
+	
+		Configuration is expected to be set immediately after loading Roact. Setting
+		configuration values after an application starts may produce unpredictable
+		behavior.
+	]]
+	
+	
+	local defaultConfig = {
+	
+		["internalTypeChecks"] = false,
+	
+		["typeChecks"] = false,
+	
+		["elementTracing"] = false,
+	
+		["propValidation"] = false,
+	
+	
+	
+		["tempFixUpdateChildrenReEntrancy"] = false,
+	}
+	
+	
+	local defaultConfigKeys = {}
+	for key in pairs(defaultConfig) do
+		table.insert(defaultConfigKeys, key)
+	end
+	
+	local Config = {}
+	
+	function Config.new()
+		local self = {}
+	
+		self._currentConfig = setmetatable({}, {
+			__index = function(_, key)
+				local message = (
+					"Invalid global configuration key %q. Valid configuration keys are: %s"
+				):format(
+					tostring(key),
+					table.concat(defaultConfigKeys, ", ")
+				)
+	
+				error(message, 3)
+			end
+		})
+	
+	
+	
+	
+		self.set = function(...)
+			return Config.set(self, ...)
+		end
+	
+		self.get = function(...)
+			return Config.get(self, ...)
+		end
+	
+		self.scoped = function(...)
+			return Config.scoped(self, ...)
+		end
+	
+		self.set(defaultConfig)
+	
+		return self
+	end
+	
+	function Config:set(configValues)
+	
+	
+		for key, value in pairs(configValues) do
+			if defaultConfig[key] == nil then
+				local message = (
+					"Invalid global configuration key %q (type %s). Valid configuration keys are: %s"
+				):format(
+					tostring(key),
+					typeof(key),
+					table.concat(defaultConfigKeys, ", ")
+				)
+	
+				error(message, 3)
+			end
+	
+	
+			if typeof(value) ~= "boolean" then
+				local message = (
+					"Invalid value %q (type %s) for global configuration key %q. Valid values are: true, false"
+				):format(
+					tostring(value),
+					typeof(value),
+					tostring(key)
+				)
+	
+				error(message, 3)
+			end
+	
+			self._currentConfig[key] = value
+		end
+	end
+	
+	function Config:get()
+		return self._currentConfig
+	end
+	
+	function Config:scoped(configValues, callback)
+		local previousValues = {}
+		for key, value in pairs(self._currentConfig) do
+			previousValues[key] = value
+		end
+	
+		self.set(configValues)
+	
+		local success, result = pcall(callback)
+	
+		self.set(previousValues)
+	
+		assert(success, result)
+	end
+	
+	return Config
+end, newEnv("Havoc.Config"))() end)
+
+newModule("ElementKind", "ModuleScript", "Havoc.ElementKind", "Havoc.include", function () return setfenv(function()
+	
+		Contains markers for annotating the type of an element.
+	
+		Use `ElementKind` as a key, and values from it as the value.
+	
+			local element = {
+				[ElementKind] = ElementKind.Host,
+			}
+	]]
+	
+	local Symbol = require(script.Parent.Symbol)
+	local strict = require(script.Parent.strict)
+	local Portal = require(script.Parent.Portal)
+	
+	local ElementKind = newproxy(true)
+	
+	local ElementKindInternal = {
+		Portal = Symbol.named("Portal"),
+		Host = Symbol.named("Host"),
+		Function = Symbol.named("Function"),
+		Stateful = Symbol.named("Stateful"),
+		Fragment = Symbol.named("Fragment"),
+	}
+	
+	function ElementKindInternal.of(value)
+		if typeof(value) ~= "table" then
+			return nil
+		end
+	
+		return value[ElementKind]
+	end
+	
+	local componentTypesToKinds = {
+		["string"] = ElementKindInternal.Host,
+		["function"] = ElementKindInternal.Function,
+		["table"] = ElementKindInternal.Stateful,
+	}
+	
+	function ElementKindInternal.fromComponent(component)
+		if component == Portal then
+			return ElementKind.Portal
+		else
+			return componentTypesToKinds[typeof(component)]
+		end
+	end
+	
+	getmetatable(ElementKind).__index = ElementKindInternal
+	
+	strict(ElementKindInternal, "ElementKind")
+	
+	return ElementKind
+end, newEnv("Havoc.ElementKind"))() end)
+
+newModule("ElementUtils", "ModuleScript", "Havoc.ElementUtils", "Havoc.include", function () return setfenv(function()
+	local Type = require(script.Parent.Type)
+	local Symbol = require(script.Parent.Symbol)
+	
+	local function noop()
+		return nil
+	end
+	
+	local ElementUtils = {}
+	
+	
+		A signal value indicating that a child should use its parent's key, because
+		it has no key of its own.
+	
+		This occurs when you return only one element from a function component or
+		stateful render function.
+	]]
+	ElementUtils.UseParentKey = Symbol.named("UseParentKey")
+	
+	
+		Returns an iterator over the children of an element.
+		`elementOrElements` may be one of:
+		* a boolean
+		* nil
+		* a single element
+		* a fragment
+		* a table of elements
+	
+		If `elementOrElements` is a boolean or nil, this will return an iterator with
+		zero elements.
+	
+		If `elementOrElements` is a single element, this will return an iterator with
+		one element: a tuple where the first value is ElementUtils.UseParentKey, and
+		the second is the value of `elementOrElements`.
+	
+		If `elementOrElements` is a fragment or a table, this will return an iterator
+		over all the elements of the array.
+	
+		If `elementOrElements` is none of the above, this function will throw.
+	]]
+	function ElementUtils.iterateElements(elementOrElements)
+		local richType = Type.of(elementOrElements)
+	
+	
+		if richType == Type.Element then
+			local called = false
+	
+			return function()
+				if called then
+					return nil
+				else
+					called = true
+					return ElementUtils.UseParentKey, elementOrElements
+				end
+			end
+		end
+	
+		local regularType = typeof(elementOrElements)
+	
+		if elementOrElements == nil or regularType == "boolean" then
+			return noop
+		end
+	
+		if regularType == "table" then
+			return pairs(elementOrElements)
+		end
+	
+		error("Invalid elements")
+	end
+	
+	
+		Gets the child corresponding to a given key, respecting Roact's rules for
+		children. Specifically:
+		* If `elements` is nil or a boolean, this will return `nil`, regardless of
+			the key given.
+		* If `elements` is a single element, this will return `nil`, unless the key
+			is ElementUtils.UseParentKey.
+		* If `elements` is a table of elements, this will return `elements[key]`.
+	]]
+	function ElementUtils.getElementByKey(elements, hostKey)
+		if elements == nil or typeof(elements) == "boolean" then
+			return nil
+		end
+	
+		if Type.of(elements) == Type.Element then
+			if hostKey == ElementUtils.UseParentKey then
+				return elements
+			end
+	
+			return nil
+		end
+	
+		if typeof(elements) == "table" then
+			return elements[hostKey]
+		end
+	
+		error("Invalid elements")
+	end
+	
+	return ElementUtils
+end, newEnv("Havoc.ElementUtils"))() end)
+
+newModule("GlobalConfig", "ModuleScript", "Havoc.GlobalConfig", "Havoc.include", function () return setfenv(function()
+	
+		Exposes a single instance of a configuration as Roact's GlobalConfig.
+	]]
+	
+	local Config = require(script.Parent.Config)
+	
+	return Config.new()
+end, newEnv("Havoc.GlobalConfig"))() end)
+
+newModule("Logging", "ModuleScript", "Havoc.Logging", "Havoc.include", function () return setfenv(function()
+	
+		Centralized place to handle logging. Lets us:
+		- Unit test log output via `Logging.capture`
+		- Disable verbose log messages when not debugging Roact
+	
+		This should be broken out into a separate library with the addition of
+		scoping and logging configuration.
+	]]
+	
+	
+	local outputEnabled = true
+	
+	
+	
+	local collectors = {}
+	
+	
+	local onceUsedLocations = {}
+	
+	
+		Indent a potentially multi-line string with the given number of tabs, in
+		addition to any indentation the string already has.
+	]]
+	local function indent(source, indentLevel)
+		local indentString = ("\t"):rep(indentLevel)
+	
+		return indentString .. source:gsub("\n", "\n" .. indentString)
+	end
+	
+	
+		Indents a list of strings and then concatenates them together with newlines
+		into a single string.
+	]]
+	local function indentLines(lines, indentLevel)
+		local outputBuffer = {}
+	
+		for _, line in ipairs(lines) do
+			table.insert(outputBuffer, indent(line, indentLevel))
+		end
+	
+		return table.concat(outputBuffer, "\n")
+	end
+	
+	local logInfoMetatable = {}
+	
+	
+		Automatic coercion to strings for LogInfo objects to enable debugging them
+		more easily.
+	]]
+	function logInfoMetatable:__tostring()
+		local outputBuffer = {"LogInfo {"}
+	
+		local errorCount = #self.errors
+		local warningCount = #self.warnings
+		local infosCount = #self.infos
+	
+		if errorCount + warningCount + infosCount == 0 then
+			table.insert(outputBuffer, "\t(no messages)")
+		end
+	
+		if errorCount > 0 then
+			table.insert(outputBuffer, ("\tErrors (%d) {"):format(errorCount))
+			table.insert(outputBuffer, indentLines(self.errors, 2))
+			table.insert(outputBuffer, "\t}")
+		end
+	
+		if warningCount > 0 then
+			table.insert(outputBuffer, ("\tWarnings (%d) {"):format(warningCount))
+			table.insert(outputBuffer, indentLines(self.warnings, 2))
+			table.insert(outputBuffer, "\t}")
+		end
+	
+		if infosCount > 0 then
+			table.insert(outputBuffer, ("\tInfos (%d) {"):format(infosCount))
+			table.insert(outputBuffer, indentLines(self.infos, 2))
+			table.insert(outputBuffer, "\t}")
+		end
+	
+		table.insert(outputBuffer, "}")
+	
+		return table.concat(outputBuffer, "\n")
+	end
+	
+	local function createLogInfo()
+		local logInfo = {
+			errors = {},
+			warnings = {},
+			infos = {},
+		}
+	
+		setmetatable(logInfo, logInfoMetatable)
+	
+		return logInfo
+	end
+	
+	local Logging = {}
+	
+	
+		Invokes `callback`, capturing all output that happens during its execution.
+	
+		Output will not go to stdout or stderr and will instead be put into a
+		LogInfo object that is returned. If `callback` throws, the error will be
+		bubbled up to the caller of `Logging.capture`.
+	]]
+	function Logging.capture(callback)
+		local collector = createLogInfo()
+	
+		local wasOutputEnabled = outputEnabled
+		outputEnabled = false
+		collectors[collector] = true
+	
+		local success, result = pcall(callback)
+	
+		collectors[collector] = nil
+		outputEnabled = wasOutputEnabled
+	
+		assert(success, result)
+	
+		return collector
+	end
+	
+	
+		Issues a warning with an automatically attached stack trace.
+	]]
+	function Logging.warn(messageTemplate, ...)
+		local message = messageTemplate:format(...)
+	
+		for collector in pairs(collectors) do
+			table.insert(collector.warnings, message)
+		end
+	
+	
+		local trace = debug.traceback("", 2):sub(2)
+		local fullMessage = ("%s\n%s"):format(message, indent(trace, 1))
+	
+		if outputEnabled then
+			warn(fullMessage)
+		end
+	end
+	
+	
+		Issues a warning like `Logging.warn`, but only outputs once per call site.
+	
+		This is useful for marking deprecated functions that might be called a lot;
+		using `warnOnce` instead of `warn` will reduce output noise while still
+		correctly marking all call sites.
+	]]
+	function Logging.warnOnce(messageTemplate, ...)
+		local trace = debug.traceback()
+	
+		if onceUsedLocations[trace] then
+			return
+		end
+	
+		onceUsedLocations[trace] = true
+		Logging.warn(messageTemplate, ...)
+	end
+	
+	return Logging
+end, newEnv("Havoc.Logging"))() end)
+
+newModule("NoYield", "ModuleScript", "Havoc.NoYield", "Havoc.include", function () return setfenv(function()
+	
+		Calls a function and throws an error if it attempts to yield.
+		Pass any number of arguments to the function after the callback.
+		This function supports multiple return; all results returned from the
+		given function will be returned.
+		https://github.com/Roblox/rodux/blob/master/src/NoYield.lua
+	]]
+	
+	local function resultHandler(co: thread, ok: boolean, ...)
+		if not ok then
+			local err = (...)
+			if typeof(err) == "string" then
+				error(debug.traceback(co, err), 2)
+			else
+	
+	
+	
+				error(tostring(err), 2)
+			end
+		end
+	
+		if coroutine.status(co) ~= "dead" then
+			error(debug.traceback(co, "Attempted to yield inside useEffect!"), 2)
+		end
+	
+		return ...
+	end
+	
+	local function NoYield(callback, ...)
+		local co = coroutine.create(callback)
+	
+		return resultHandler(co, coroutine.resume(co, ...))
+	end
+	
+	return NoYield
+	
+end, newEnv("Havoc.NoYield"))() end)
+
+newModule("None", "ModuleScript", "Havoc.None", "Havoc.include", function () return setfenv(function()
+	local Symbol = require(script.Parent.Symbol)
+	
+	
+	
+	local None = Symbol.named("None")
+	
+	return None
+end, newEnv("Havoc.None"))() end)
+
+newModule("NoopRenderer", "ModuleScript", "Havoc.NoopRenderer", "Havoc.include", function () return setfenv(function()
+	
+		Reference renderer intended for use in tests as well as for documenting the
+		minimum required interface for a Roact renderer.
+	]]
+	
+	local NoopRenderer = {}
+	
+	function NoopRenderer.isHostObject(target)
+	
+	
+		return target == nil
+	end
+	
+	function NoopRenderer.mountHostNode(reconciler, node)
+	end
+	
+	function NoopRenderer.unmountHostNode(reconciler, node)
+	end
+	
+	function NoopRenderer.updateHostNode(reconciler, node, newElement)
+		return node
+	end
+	
+	return NoopRenderer
+end, newEnv("Havoc.NoopRenderer"))() end)
+
+newModule("Portal", "ModuleScript", "Havoc.Portal", "Havoc.include", function () return setfenv(function()
+	local Symbol = require(script.Parent.Symbol)
+	
+	local Portal = Symbol.named("Portal")
+	
+	return Portal
+end, newEnv("Havoc.Portal"))() end)
+
+newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc.include", function () return setfenv(function()
 	
 		An implementation of Promises similar to Promise/A+.
 	]]
@@ -2219,6 +3467,352 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 end, newEnv("Havoc.Promise"))() end)
 
+newModule("PureComponent", "ModuleScript", "Havoc.PureComponent", "Havoc.include", function () return setfenv(function()
+	
+		A version of Component with a `shouldUpdate` method that forces the
+		resulting component to be pure.
+	]]
+	
+	local Component = require(script.Parent.Component)
+	
+	local PureComponent = Component:extend("PureComponent")
+	
+	
+	
+	
+	PureComponent.extend = Component.extend
+	
+	function PureComponent:shouldUpdate(newProps, newState)
+	
+	
+		if newState ~= self.state then
+			return true
+		end
+	
+		if newProps == self.props then
+			return false
+		end
+	
+		for key, value in pairs(newProps) do
+			if self.props[key] ~= value then
+				return true
+			end
+		end
+	
+		for key, value in pairs(self.props) do
+			if newProps[key] ~= value then
+				return true
+			end
+		end
+	
+		return false
+	end
+	
+	return PureComponent
+end, newEnv("Havoc.PureComponent"))() end)
+
+newModule("Roact", "ModuleScript", "Havoc.Roact", "Havoc.include", function () return setfenv(function()
+	local modules = script:FindFirstAncestor("node_modules")
+	
+	if modules:FindFirstChild("roact") then
+		return require(modules.roact.src)
+	elseif modules:FindFirstChild("@rbxts") then
+		return require(modules["@rbxts"].roact.src)
+	elseif script.Parent.Parent:FindFirstChild("Roact") then
+		return require(script.Parent.Parent.Roact)
+	else
+		error("Could not find Roact or @rbxts/roact in the parent hierarchy.")
+	end
+	
+end, newEnv("Havoc.Roact"))() end)
+
+newModule("RobloxRenderer", "ModuleScript", "Havoc.RobloxRenderer", "Havoc.include", function () return setfenv(function()
+	
+		Renderer that deals in terms of Roblox Instances. This is the most
+		well-supported renderer after NoopRenderer and is currently the only
+		renderer that does anything.
+	]]
+	
+	local Binding = require(script.Parent.Binding)
+	local Children = require(script.Parent.PropMarkers.Children)
+	local ElementKind = require(script.Parent.ElementKind)
+	local SingleEventManager = require(script.Parent.SingleEventManager)
+	local getDefaultInstanceProperty = require(script.Parent.getDefaultInstanceProperty)
+	local Ref = require(script.Parent.PropMarkers.Ref)
+	local Type = require(script.Parent.Type)
+	local internalAssert = require(script.Parent.internalAssert)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	local applyPropsError = [[
+	Error applying props:
+		%s
+	In element:
+	%s
+	]]
+	
+	local updatePropsError = [[
+	Error updating props:
+		%s
+	In element:
+	%s
+	]]
+	
+	local function identity(...)
+		return ...
+	end
+	
+	local function applyRef(ref, newHostObject)
+		if ref == nil then
+			return
+		end
+	
+		if typeof(ref) == "function" then
+			ref(newHostObject)
+		elseif Type.of(ref) == Type.Binding then
+			Binding.update(ref, newHostObject)
+		else
+	
+			error(("Invalid ref: Expected type Binding but got %s"):format(
+				typeof(ref)
+			))
+		end
+	end
+	
+	local function setRobloxInstanceProperty(hostObject, key, newValue)
+		if newValue == nil then
+			local hostClass = hostObject.ClassName
+			local _, defaultValue = getDefaultInstanceProperty(hostClass, key)
+			newValue = defaultValue
+		end
+	
+	
+		hostObject[key] = newValue
+	
+		return
+	end
+	
+	local function removeBinding(virtualNode, key)
+		local disconnect = virtualNode.bindings[key]
+		disconnect()
+		virtualNode.bindings[key] = nil
+	end
+	
+	local function attachBinding(virtualNode, key, newBinding)
+		local function updateBoundProperty(newValue)
+			local success, errorMessage = xpcall(function()
+				setRobloxInstanceProperty(virtualNode.hostObject, key, newValue)
+			end, identity)
+	
+			if not success then
+				local source = virtualNode.currentElement.source
+	
+				if source == nil then
+					source = "<enable element tracebacks>"
+				end
+	
+				local fullMessage = updatePropsError:format(errorMessage, source)
+				error(fullMessage, 0)
+			end
+		end
+	
+		if virtualNode.bindings == nil then
+			virtualNode.bindings = {}
+		end
+	
+		virtualNode.bindings[key] = Binding.subscribe(newBinding, updateBoundProperty)
+	
+		updateBoundProperty(newBinding:getValue())
+	end
+	
+	local function detachAllBindings(virtualNode)
+		if virtualNode.bindings ~= nil then
+			for _, disconnect in pairs(virtualNode.bindings) do
+				disconnect()
+			end
+		end
+	end
+	
+	local function applyProp(virtualNode, key, newValue, oldValue)
+		if newValue == oldValue then
+			return
+		end
+	
+		if key == Ref or key == Children then
+	
+			return
+		end
+	
+		local internalKeyType = Type.of(key)
+	
+		if internalKeyType == Type.HostEvent or internalKeyType == Type.HostChangeEvent then
+			if virtualNode.eventManager == nil then
+				virtualNode.eventManager = SingleEventManager.new(virtualNode.hostObject)
+			end
+	
+			local eventName = key.name
+	
+			if internalKeyType == Type.HostChangeEvent then
+				virtualNode.eventManager:connectPropertyChange(eventName, newValue)
+			else
+				virtualNode.eventManager:connectEvent(eventName, newValue)
+			end
+	
+			return
+		end
+	
+		local newIsBinding = Type.of(newValue) == Type.Binding
+		local oldIsBinding = Type.of(oldValue) == Type.Binding
+	
+		if oldIsBinding then
+			removeBinding(virtualNode, key)
+		end
+	
+		if newIsBinding then
+			attachBinding(virtualNode, key, newValue)
+		else
+			setRobloxInstanceProperty(virtualNode.hostObject, key, newValue)
+		end
+	end
+	
+	local function applyProps(virtualNode, props)
+		for propKey, value in pairs(props) do
+			applyProp(virtualNode, propKey, value, nil)
+		end
+	end
+	
+	local function updateProps(virtualNode, oldProps, newProps)
+	
+		for propKey, newValue in pairs(newProps) do
+			local oldValue = oldProps[propKey]
+	
+			applyProp(virtualNode, propKey, newValue, oldValue)
+		end
+	
+	
+		for propKey, oldValue in pairs(oldProps) do
+			local newValue = newProps[propKey]
+	
+			if newValue == nil then
+				applyProp(virtualNode, propKey, nil, oldValue)
+			end
+		end
+	end
+	
+	local RobloxRenderer = {}
+	
+	function RobloxRenderer.isHostObject(target)
+		return typeof(target) == "Instance"
+	end
+	
+	function RobloxRenderer.mountHostNode(reconciler, virtualNode)
+		local element = virtualNode.currentElement
+		local hostParent = virtualNode.hostParent
+		local hostKey = virtualNode.hostKey
+	
+		if config.internalTypeChecks then
+			internalAssert(ElementKind.of(element) == ElementKind.Host, "Element at given node is not a host Element")
+		end
+		if config.typeChecks then
+			assert(element.props.Name == nil, "Name can not be specified as a prop to a host component in Roact.")
+			assert(element.props.Parent == nil, "Parent can not be specified as a prop to a host component in Roact.")
+		end
+	
+		local instance = Instance.new(element.component)
+		virtualNode.hostObject = instance
+	
+		local success, errorMessage = xpcall(function()
+			applyProps(virtualNode, element.props)
+		end, identity)
+	
+		if not success then
+			local source = element.source
+	
+			if source == nil then
+				source = "<enable element tracebacks>"
+			end
+	
+			local fullMessage = applyPropsError:format(errorMessage, source)
+			error(fullMessage, 0)
+		end
+	
+		instance.Name = tostring(hostKey)
+	
+		local children = element.props[Children]
+	
+		if children ~= nil then
+			reconciler.updateVirtualNodeWithChildren(virtualNode, virtualNode.hostObject, children)
+		end
+	
+		instance.Parent = hostParent
+		virtualNode.hostObject = instance
+	
+		applyRef(element.props[Ref], instance)
+	
+		if virtualNode.eventManager ~= nil then
+			virtualNode.eventManager:resume()
+		end
+	end
+	
+	function RobloxRenderer.unmountHostNode(reconciler, virtualNode)
+		local element = virtualNode.currentElement
+	
+		applyRef(element.props[Ref], nil)
+	
+		for _, childNode in pairs(virtualNode.children) do
+			reconciler.unmountVirtualNode(childNode)
+		end
+	
+		detachAllBindings(virtualNode)
+	
+		virtualNode.hostObject:Destroy()
+	end
+	
+	function RobloxRenderer.updateHostNode(reconciler, virtualNode, newElement)
+		local oldProps = virtualNode.currentElement.props
+		local newProps = newElement.props
+	
+		if virtualNode.eventManager ~= nil then
+			virtualNode.eventManager:suspend()
+		end
+	
+	
+		if oldProps[Ref] ~= newProps[Ref] then
+			applyRef(oldProps[Ref], nil)
+			applyRef(newProps[Ref], virtualNode.hostObject)
+		end
+	
+		local success, errorMessage = xpcall(function()
+			updateProps(virtualNode, oldProps, newProps)
+		end, identity)
+	
+		if not success then
+			local source = newElement.source
+	
+			if source == nil then
+				source = "<enable element tracebacks>"
+			end
+	
+			local fullMessage = updatePropsError:format(errorMessage, source)
+			error(fullMessage, 0)
+		end
+	
+		local children = newElement.props[Children]
+		if children ~= nil or oldProps[Children] ~= nil then
+			reconciler.updateVirtualNodeWithChildren(virtualNode, virtualNode.hostObject, children)
+		end
+	
+		if virtualNode.eventManager ~= nil then
+			virtualNode.eventManager:resume()
+		end
+	
+		return virtualNode
+	end
+	
+	return RobloxRenderer
+	
+end, newEnv("Havoc.RobloxRenderer"))() end)
+
 newModule("RuntimeLib", "ModuleScript", "Havoc.include.RuntimeLib", "Havoc.include", function () return setfenv(function()
 	local Promise = require(script.Parent.Promise)
 	
@@ -2452,7 +4046,2676 @@ newModule("RuntimeLib", "ModuleScript", "Havoc.include.RuntimeLib", "Havoc.inclu
 	
 end, newEnv("Havoc.include.RuntimeLib"))() end)
 
-newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () return setfenv(function()
+newModule("Signal", "ModuleScript", "Havoc.Signal", "Havoc.include", function () return setfenv(function()
+	
+		A limited, simple implementation of a Signal.
+	
+		Handlers are fired in order, and (dis)connections are properly handled when
+		executing an event.
+	]]
+	local function immutableAppend(list, ...)
+		local new = {}
+		local len = #list
+	
+		for key = 1, len do
+			new[key] = list[key]
+		end
+	
+		for i = 1, select("#", ...) do
+			new[len + i] = select(i, ...)
+		end
+	
+		return new
+	end
+	
+	local function immutableRemoveValue(list, removeValue)
+		local new = {}
+	
+		for i = 1, #list do
+			if list[i] ~= removeValue then
+				table.insert(new, list[i])
+			end
+		end
+	
+		return new
+	end
+	
+	local Signal = {}
+	
+	Signal.__index = Signal
+	
+	function Signal.new(store)
+		local self = {
+			_listeners = {},
+			_store = store
+		}
+	
+		setmetatable(self, Signal)
+	
+		return self
+	end
+	
+	function Signal:connect(callback)
+		if typeof(callback) ~= "function" then
+			error("Expected the listener to be a function.")
+		end
+	
+		if self._store and self._store._isDispatching then
+			error(
+				'You may not call store.changed:connect() while the reducer is executing. ' ..
+					'If you would like to be notified after the store has been updated, subscribe from a ' ..
+					'component and invoke store:getState() in the callback to access the latest state. '
+			)
+		end
+	
+		local listener = {
+			callback = callback,
+			disconnected = false,
+			connectTraceback = debug.traceback(),
+			disconnectTraceback = nil
+		}
+	
+		self._listeners = immutableAppend(self._listeners, listener)
+	
+		local function disconnect()
+			if listener.disconnected then
+				error((
+					"Listener connected at: \n%s\n" ..
+					"was already disconnected at: \n%s\n"
+				):format(
+					tostring(listener.connectTraceback),
+					tostring(listener.disconnectTraceback)
+				))
+			end
+	
+			if self._store and self._store._isDispatching then
+				error("You may not unsubscribe from a store listener while the reducer is executing.")
+			end
+	
+			listener.disconnected = true
+			listener.disconnectTraceback = debug.traceback()
+			self._listeners = immutableRemoveValue(self._listeners, listener)
+		end
+	
+		return {
+			disconnect = disconnect
+		}
+	end
+	
+	function Signal:fire(...)
+		for _, listener in ipairs(self._listeners) do
+			if not listener.disconnected then
+				listener.callback(...)
+			end
+		end
+	end
+	
+	return Signal
+end, newEnv("Havoc.Signal"))() end)
+
+newModule("SingleEventManager", "ModuleScript", "Havoc.SingleEventManager", "Havoc.include", function () return setfenv(function()
+	
+		A manager for a single host virtual node's connected events.
+	]]
+	
+	local Logging = require(script.Parent.Logging)
+	
+	local CHANGE_PREFIX = "Change."
+	
+	local EventStatus = {
+	
+		Disabled = "Disabled",
+	
+	
+		Suspended = "Suspended",
+	
+	
+		Enabled = "Enabled",
+	}
+	
+	local SingleEventManager = {}
+	SingleEventManager.__index = SingleEventManager
+	
+	function SingleEventManager.new(instance)
+		local self = setmetatable({
+	
+			_suspendedEventQueue = {},
+	
+	
+	
+			_connections = {},
+	
+	
+	
+	
+			_listeners = {},
+	
+	
+	
+			_status = EventStatus.Disabled,
+	
+	
+			_isResuming = false,
+	
+	
+			_instance = instance,
+		}, SingleEventManager)
+	
+		return self
+	end
+	
+	function SingleEventManager:connectEvent(key, listener)
+		self:_connect(key, self._instance[key], listener)
+	end
+	
+	function SingleEventManager:connectPropertyChange(key, listener)
+		local success, event = pcall(function()
+			return self._instance:GetPropertyChangedSignal(key)
+		end)
+	
+		if not success then
+			error(("Cannot get changed signal on property %q: %s"):format(
+				tostring(key),
+				event
+			), 0)
+		end
+	
+		self:_connect(CHANGE_PREFIX .. key, event, listener)
+	end
+	
+	function SingleEventManager:_connect(eventKey, event, listener)
+	
+		if listener == nil then
+			if self._connections[eventKey] ~= nil then
+				self._connections[eventKey]:Disconnect()
+				self._connections[eventKey] = nil
+			end
+	
+			self._listeners[eventKey] = nil
+		else
+			if self._connections[eventKey] == nil then
+				self._connections[eventKey] = event:Connect(function(...)
+					if self._status == EventStatus.Enabled then
+						self._listeners[eventKey](self._instance, ...)
+					elseif self._status == EventStatus.Suspended then
+	
+	
+	
+						local argumentCount = select("#", ...)
+						table.insert(self._suspendedEventQueue, { eventKey, argumentCount, ... })
+					end
+				end)
+			end
+	
+			self._listeners[eventKey] = listener
+		end
+	end
+	
+	function SingleEventManager:suspend()
+		self._status = EventStatus.Suspended
+	end
+	
+	function SingleEventManager:resume()
+	
+	
+		if self._isResuming then
+			return
+		end
+	
+		self._isResuming = true
+	
+		local index = 1
+	
+	
+	
+		while index <= #self._suspendedEventQueue do
+			local eventInvocation = self._suspendedEventQueue[index]
+			local listener = self._listeners[eventInvocation[1]]
+			local argumentCount = eventInvocation[2]
+	
+	
+	
+			if listener ~= nil then
+	
+	
+				local listenerCo = coroutine.create(listener)
+				local success, result = coroutine.resume(
+					listenerCo,
+					self._instance,
+					unpack(eventInvocation, 3, 2 + argumentCount))
+	
+	
+	
+	
+				if not success then
+					Logging.warn("%s", result)
+				end
+			end
+	
+			index = index + 1
+		end
+	
+		self._isResuming = false
+		self._status = EventStatus.Enabled
+		self._suspendedEventQueue = {}
+	end
+	
+	return SingleEventManager
+end, newEnv("Havoc.SingleEventManager"))() end)
+
+newModule("Store", "ModuleScript", "Havoc.Store", "Havoc.include", function () return setfenv(function()
+	local RunService = game:GetService("RunService")
+	
+	local Signal = require(script.Parent.Signal)
+	local NoYield = require(script.Parent.NoYield)
+	
+	local ACTION_LOG_LENGTH = 3
+	
+	local rethrowErrorReporter = {
+		reportReducerError = function(prevState, action, errorResult)
+			error(string.format("Received error: %s\n\n%s", errorResult.message, errorResult.thrownValue))
+		end,
+		reportUpdateError = function(prevState, currentState, lastActions, errorResult)
+			error(string.format("Received error: %s\n\n%s", errorResult.message, errorResult.thrownValue))
+		end,
+	}
+	
+	local function tracebackReporter(message)
+		return debug.traceback(tostring(message))
+	end
+	
+	local Store = {}
+	
+	
+	
+	
+	Store._flushEvent = RunService.Heartbeat
+	
+	Store.__index = Store
+	
+	
+		Create a new Store whose state is transformed by the given reducer function.
+	
+		Each time an action is dispatched to the store, the new state of the store
+		is given by:
+	
+			state = reducer(state, action)
+	
+		Reducers do not mutate the state object, so the original state is still
+		valid.
+	]]
+	function Store.new(reducer, initialState, middlewares, errorReporter)
+		assert(typeof(reducer) == "function", "Bad argument #1 to Store.new, expected function.")
+		assert(middlewares == nil or typeof(middlewares) == "table", "Bad argument #3 to Store.new, expected nil or table.")
+		if middlewares ~= nil then
+			for i=1, #middlewares, 1 do
+				assert(
+					typeof(middlewares[i]) == "function",
+					("Expected the middleware ('%s') at index %d to be a function."):format(tostring(middlewares[i]), i)
+				)
+			end
+		end
+	
+		local self = {}
+	
+		self._errorReporter = errorReporter or rethrowErrorReporter
+		self._isDispatching = false
+		self._reducer = reducer
+		local initAction = {
+			type = "@@INIT",
+		}
+		self._actionLog = { initAction }
+		local ok, result = xpcall(function()
+			self._state = reducer(initialState, initAction)
+		end, tracebackReporter)
+		if not ok then
+			self._errorReporter.reportReducerError(initialState, initAction, {
+				message = "Caught error in reducer with init",
+				thrownValue = result,
+			})
+			self._state = initialState
+		end
+		self._lastState = self._state
+	
+		self._mutatedSinceFlush = false
+		self._connections = {}
+	
+		self.changed = Signal.new(self)
+	
+		setmetatable(self, Store)
+	
+		local connection = self._flushEvent:Connect(function()
+			self:flush()
+		end)
+		table.insert(self._connections, connection)
+	
+		if middlewares then
+			local unboundDispatch = self.dispatch
+			local dispatch = function(...)
+				return unboundDispatch(self, ...)
+			end
+	
+			for i = #middlewares, 1, -1 do
+				local middleware = middlewares[i]
+				dispatch = middleware(dispatch, self)
+			end
+	
+			self.dispatch = function(_self, ...)
+				return dispatch(...)
+			end
+		end
+	
+		return self
+	end
+	
+	
+		Get the current state of the Store. Do not mutate this!
+	]]
+	function Store:getState()
+		if self._isDispatching then
+			error(("You may not call store:getState() while the reducer is executing. " ..
+				"The reducer (%s) has already received the state as an argument. " ..
+				"Pass it down from the top reducer instead of reading it from the store."):format(tostring(self._reducer)))
+		end
+	
+		return self._state
+	end
+	
+	
+		Dispatch an action to the store. This allows the store's reducer to mutate
+		the state of the application by creating a new copy of the state.
+	
+		Listeners on the changed event of the store are notified when the state
+		changes, but not necessarily on every Dispatch.
+	]]
+	function Store:dispatch(action)
+		if typeof(action) ~= "table" then
+			error(("Actions must be tables. " ..
+				"Use custom middleware for %q actions."):format(typeof(action)),
+				2
+			)
+		end
+	
+		if action.type == nil then
+			error("Actions may not have an undefined 'type' property. " ..
+				"Have you misspelled a constant? \n" ..
+				tostring(action), 2)
+		end
+	
+		if self._isDispatching then
+			error("Reducers may not dispatch actions.")
+		end
+	
+		local ok, result = pcall(function()
+			self._isDispatching = true
+			self._state = self._reducer(self._state, action)
+			self._mutatedSinceFlush = true
+		end)
+	
+		self._isDispatching = false
+	
+		if not ok then
+			self._errorReporter.reportReducerError(
+				self._state,
+				action,
+				{
+					message = "Caught error in reducer",
+					thrownValue = result,
+				}
+			)
+		end
+	
+		if #self._actionLog == ACTION_LOG_LENGTH then
+			table.remove(self._actionLog, 1)
+		end
+		table.insert(self._actionLog, action)
+	end
+	
+	
+		Marks the store as deleted, disconnecting any outstanding connections.
+	]]
+	function Store:destruct()
+		for _, connection in ipairs(self._connections) do
+			connection:Disconnect()
+		end
+	
+		self._connections = nil
+	end
+	
+	
+		Flush all pending actions since the last change event was dispatched.
+	]]
+	function Store:flush()
+		if not self._mutatedSinceFlush then
+			return
+		end
+	
+		self._mutatedSinceFlush = false
+	
+	
+	
+	
+		local state = self._state
+	
+		local ok, errorResult = xpcall(function()
+	
+	
+			NoYield(function()
+				self.changed:fire(state, self._lastState)
+			end)
+		end, tracebackReporter)
+	
+		if not ok then
+			self._errorReporter.reportUpdateError(
+				self._lastState,
+				state,
+				self._actionLog,
+				{
+					message = "Caught error flushing store updates",
+					thrownValue = errorResult,
+				}
+			)
+		end
+	
+		self._lastState = state
+	end
+	
+	return Store
+	
+end, newEnv("Havoc.Store"))() end)
+
+newModule("Symbol", "ModuleScript", "Havoc.Symbol", "Havoc.include", function () return setfenv(function()
+	
+		A 'Symbol' is an opaque marker type.
+	
+		Symbols have the type 'userdata', but when printed to the console, the name
+		of the symbol is shown.
+	]]
+	
+	local Symbol = {}
+	
+	
+		Creates a Symbol with the given name.
+	
+		When printed or coerced to a string, the symbol will turn into the string
+		given as its name.
+	]]
+	function Symbol.named(name)
+		assert(type(name) == "string", "Symbols must be created using a string name!")
+	
+		local self = newproxy(true)
+	
+		local wrappedName = ("Symbol(%s)"):format(name)
+	
+		getmetatable(self).__tostring = function()
+			return wrappedName
+		end
+	
+		return self
+	end
+	
+	return Symbol
+end, newEnv("Havoc.Symbol"))() end)
+
+newModule("Type", "ModuleScript", "Havoc.Type", "Havoc.include", function () return setfenv(function()
+	
+		Contains markers for annotating objects with types.
+	
+		To set the type of an object, use `Type` as a key and the actual marker as
+		the value:
+	
+			local foo = {
+				[Type] = Type.Foo,
+			}
+	]]
+	
+	local Symbol = require(script.Parent.Symbol)
+	local strict = require(script.Parent.strict)
+	
+	local Type = newproxy(true)
+	
+	local TypeInternal = {}
+	
+	local function addType(name)
+		TypeInternal[name] = Symbol.named("Roact" .. name)
+	end
+	
+	addType("Binding")
+	addType("Element")
+	addType("HostChangeEvent")
+	addType("HostEvent")
+	addType("StatefulComponentClass")
+	addType("StatefulComponentInstance")
+	addType("VirtualNode")
+	addType("VirtualTree")
+	
+	function TypeInternal.of(value)
+		if typeof(value) ~= "table" then
+			return nil
+		end
+	
+		return value[Type]
+	end
+	
+	getmetatable(Type).__index = TypeInternal
+	
+	getmetatable(Type).__tostring = function()
+		return "RoactType"
+	end
+	
+	strict(TypeInternal, "Type")
+	
+	return Type
+end, newEnv("Havoc.Type"))() end)
+
+newModule("assertDeepEqual", "ModuleScript", "Havoc.assertDeepEqual", "Havoc.include", function () return setfenv(function()
+	
+		A utility used to assert that two objects are value-equal recursively. It
+		outputs fairly nicely formatted messages to help diagnose why two objects
+		would be different.
+	
+		This should only be used in tests.
+	]]
+	
+	local function deepEqual(a, b)
+		if typeof(a) ~= typeof(b) then
+			local message = ("{1} is of type %s, but {2} is of type %s"):format(
+				typeof(a),
+				typeof(b)
+			)
+			return false, message
+		end
+	
+		if typeof(a) == "table" then
+			local visitedKeys = {}
+	
+			for key, value in pairs(a) do
+				visitedKeys[key] = true
+	
+				local success, innerMessage = deepEqual(value, b[key])
+				if not success then
+					local message = innerMessage
+						:gsub("{1}", ("{1}[%s]"):format(tostring(key)))
+						:gsub("{2}", ("{2}[%s]"):format(tostring(key)))
+	
+					return false, message
+				end
+			end
+	
+			for key, value in pairs(b) do
+				if not visitedKeys[key] then
+					local success, innerMessage = deepEqual(value, a[key])
+	
+					if not success then
+						local message = innerMessage
+							:gsub("{1}", ("{1}[%s]"):format(tostring(key)))
+							:gsub("{2}", ("{2}[%s]"):format(tostring(key)))
+	
+						return false, message
+					end
+				end
+			end
+	
+			return true
+		end
+	
+		if a == b then
+			return true
+		end
+	
+		local message = "{1} ~= {2}"
+		return false, message
+	end
+	
+	local function assertDeepEqual(a, b)
+		local success, innerMessageTemplate = deepEqual(a, b)
+	
+		if not success then
+			local innerMessage = innerMessageTemplate
+				:gsub("{1}", "first")
+				:gsub("{2}", "second")
+	
+			local message = ("Values were not deep-equal.\n%s"):format(innerMessage)
+	
+			error(message, 2)
+		end
+	end
+	
+	return assertDeepEqual
+end, newEnv("Havoc.assertDeepEqual"))() end)
+
+newModule("assign", "ModuleScript", "Havoc.assign", "Havoc.include", function () return setfenv(function()
+	local None = require(script.Parent.None)
+	
+	
+		Merges values from zero or more tables onto a target table. If a value is
+		set to None, it will instead be removed from the table.
+	
+		This function is identical in functionality to JavaScript's Object.assign.
+	]]
+	local function assign(target, ...)
+		for index = 1, select("#", ...) do
+			local source = select(index, ...)
+	
+			if source ~= nil then
+				for key, value in pairs(source) do
+					if value == None then
+						target[key] = nil
+					else
+						target[key] = value
+					end
+				end
+			end
+		end
+	
+		return target
+	end
+	
+	return assign
+end, newEnv("Havoc.assign"))() end)
+
+newModule("combineReducers", "ModuleScript", "Havoc.combineReducers", "Havoc.include", function () return setfenv(function()
+	
+		Create a composite reducer from a map of keys and sub-reducers.
+	]]
+	local function combineReducers(map)
+		return function(state, action)
+	
+			if state == nil then
+				state = {}
+			end
+	
+			local newState = {}
+	
+			for key, reducer in pairs(map) do
+	
+				newState[key] = reducer(state[key], action)
+			end
+	
+			return newState
+		end
+	end
+	
+	return combineReducers
+	
+end, newEnv("Havoc.combineReducers"))() end)
+
+newModule("createContext", "ModuleScript", "Havoc.createContext", "Havoc.include", function () return setfenv(function()
+	local Symbol = require(script.Parent.Symbol)
+	local createFragment = require(script.Parent.createFragment)
+	local createSignal = require(script.Parent.createSignal)
+	local Children = require(script.Parent.PropMarkers.Children)
+	local Component = require(script.Parent.Component)
+	
+	
+		Construct the value that is assigned to Roact's context storage.
+	]]
+	local function createContextEntry(currentValue)
+		return {
+			value = currentValue,
+			onUpdate = createSignal(),
+		}
+	end
+	
+	local function createProvider(context)
+		local Provider = Component:extend("Provider")
+	
+		function Provider:init(props)
+			self.contextEntry = createContextEntry(props.value)
+			self:__addContext(context.key, self.contextEntry)
+		end
+	
+		function Provider:willUpdate(nextProps)
+	
+	
+	
+	
+	
+			if nextProps.value ~= self.props.value then
+				self.contextEntry.value = nextProps.value
+			end
+		end
+	
+		function Provider:didUpdate(prevProps)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+			if prevProps.value ~= self.props.value then
+				self.contextEntry.onUpdate:fire(self.props.value)
+			end
+		end
+	
+		function Provider:render()
+			return createFragment(self.props[Children])
+		end
+	
+		return Provider
+	end
+	
+	local function createConsumer(context)
+		local Consumer = Component:extend("Consumer")
+	
+		function Consumer.validateProps(props)
+			if type(props.render) ~= "function" then
+				return false, "Consumer expects a `render` function"
+			else
+				return true
+			end
+		end
+	
+		function Consumer:init(props)
+	
+	
+			self.contextEntry = self:__getContext(context.key)
+		end
+	
+		function Consumer:render()
+	
+	
+	
+	
+			local value
+			if self.contextEntry ~= nil then
+				value = self.contextEntry.value
+			else
+				value = context.defaultValue
+			end
+	
+			return self.props.render(value)
+		end
+	
+		function Consumer:didUpdate()
+	
+	
+	
+			if self.contextEntry ~= nil then
+				self.lastValue = self.contextEntry.value
+			end
+		end
+	
+		function Consumer:didMount()
+			if self.contextEntry ~= nil then
+	
+	
+	
+	
+	
+	
+	
+	
+	
+				self.disconnect = self.contextEntry.onUpdate:subscribe(function(newValue)
+					if newValue ~= self.lastValue then
+	
+						self:setState({})
+					end
+				end)
+			end
+		end
+	
+		function Consumer:willUnmount()
+			if self.disconnect ~= nil then
+				self.disconnect()
+			end
+		end
+	
+		return Consumer
+	end
+	
+	local Context = {}
+	Context.__index = Context
+	
+	function Context.new(defaultValue)
+		return setmetatable({
+			defaultValue = defaultValue,
+			key = Symbol.named("ContextKey"),
+		}, Context)
+	end
+	
+	function Context:__tostring()
+		return "RoactContext"
+	end
+	
+	local function createContext(defaultValue)
+		local context = Context.new(defaultValue)
+	
+		return {
+			Provider = createProvider(context),
+			Consumer = createConsumer(context),
+		}
+	end
+	
+	return createContext
+	
+end, newEnv("Havoc.createContext"))() end)
+
+newModule("createElement", "ModuleScript", "Havoc.createElement", "Havoc.include", function () return setfenv(function()
+	local Children = require(script.Parent.PropMarkers.Children)
+	local ElementKind = require(script.Parent.ElementKind)
+	local Logging = require(script.Parent.Logging)
+	local Type = require(script.Parent.Type)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	local multipleChildrenMessage = [[
+	The prop `Roact.Children` was defined but was overriden by the third parameter to createElement!
+	This can happen when a component passes props through to a child element but also uses the `children` argument:
+	
+		Roact.createElement("Frame", passedProps, {
+			child = ...
+		})
+	
+	Instead, consider using a utility function to merge tables of children together:
+	
+		local children = mergeTables(passedProps[Roact.Children], {
+			child = ...
+		})
+	
+		local fullProps = mergeTables(passedProps, {
+			[Roact.Children] = children
+		})
+	
+		Roact.createElement("Frame", fullProps)]]
+	
+	
+		Creates a new element representing the given component.
+	
+		Elements are lightweight representations of what a component instance should
+		look like.
+	
+		Children is a shorthand for specifying `Roact.Children` as a key inside
+		props. If specified, the passed `props` table is mutated!
+	]]
+	local function createElement(component, props, children)
+		if config.typeChecks then
+			assert(component ~= nil, "`component` is required")
+			assert(typeof(props) == "table" or props == nil, "`props` must be a table or nil")
+			assert(typeof(children) == "table" or children == nil, "`children` must be a table or nil")
+		end
+	
+		if props == nil then
+			props = {}
+		end
+	
+		if children ~= nil then
+			if props[Children] ~= nil then
+				Logging.warnOnce(multipleChildrenMessage)
+			end
+	
+			props[Children] = children
+		end
+	
+		local elementKind = ElementKind.fromComponent(component)
+	
+		local element = {
+			[Type] = Type.Element,
+			[ElementKind] = elementKind,
+			component = component,
+			props = props,
+		}
+	
+		if config.elementTracing then
+	
+	
+			element.source = debug.traceback("", 2):sub(2)
+		end
+	
+		return element
+	end
+	
+	return createElement
+end, newEnv("Havoc.createElement"))() end)
+
+newModule("createFragment", "ModuleScript", "Havoc.createFragment", "Havoc.include", function () return setfenv(function()
+	local ElementKind = require(script.Parent.ElementKind)
+	local Type = require(script.Parent.Type)
+	
+	local function createFragment(elements)
+		return {
+			[Type] = Type.Element,
+			[ElementKind] = ElementKind.Fragment,
+			elements = elements,
+		}
+	end
+	
+	return createFragment
+end, newEnv("Havoc.createFragment"))() end)
+
+newModule("createReconciler", "ModuleScript", "Havoc.createReconciler", "Havoc.include", function () return setfenv(function()
+	local Type = require(script.Parent.Type)
+	local ElementKind = require(script.Parent.ElementKind)
+	local ElementUtils = require(script.Parent.ElementUtils)
+	local Children = require(script.Parent.PropMarkers.Children)
+	local Symbol = require(script.Parent.Symbol)
+	local internalAssert = require(script.Parent.internalAssert)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	local InternalData = Symbol.named("InternalData")
+	
+	
+		The reconciler is the mechanism in Roact that constructs the virtual tree
+		that later gets turned into concrete objects by the renderer.
+	
+		Roact's reconciler is constructed with the renderer as an argument, which
+		enables switching to different renderers for different platforms or
+		scenarios.
+	
+		When testing the reconciler itself, it's common to use `NoopRenderer` with
+		spies replacing some methods. The default (and only) reconciler interface
+		exposed by Roact right now uses `RobloxRenderer`.
+	]]
+	local function createReconciler(renderer)
+		local reconciler
+		local mountVirtualNode
+		local updateVirtualNode
+		local unmountVirtualNode
+	
+	
+			Unmount the given virtualNode, replacing it with a new node described by
+			the given element.
+	
+			Preserves host properties, depth, and legacyContext from parent.
+		]]
+		local function replaceVirtualNode(virtualNode, newElement)
+			local hostParent = virtualNode.hostParent
+			local hostKey = virtualNode.hostKey
+			local depth = virtualNode.depth
+			local parent = virtualNode.parent
+	
+	
+	
+	
+			local context = virtualNode.originalContext or virtualNode.context
+			local parentLegacyContext = virtualNode.parentLegacyContext
+	
+			unmountVirtualNode(virtualNode)
+			local newNode = mountVirtualNode(newElement, hostParent, hostKey, context, parentLegacyContext)
+	
+	
+			if newNode ~= nil then
+				newNode.depth = depth
+				newNode.parent = parent
+			end
+	
+			return newNode
+		end
+	
+	
+			Utility to update the children of a virtual node based on zero or more
+			updated children given as elements.
+		]]
+		local function updateChildren(virtualNode, hostParent, newChildElements)
+			if config.internalTypeChecks then
+				internalAssert(Type.of(virtualNode) == Type.VirtualNode, "Expected arg #1 to be of type VirtualNode")
+			end
+	
+			local removeKeys = {}
+	
+	
+			for childKey, childNode in pairs(virtualNode.children) do
+				local newElement = ElementUtils.getElementByKey(newChildElements, childKey)
+				local newNode = updateVirtualNode(childNode, newElement)
+	
+				if newNode ~= nil then
+					virtualNode.children[childKey] = newNode
+				else
+					removeKeys[childKey] = true
+				end
+			end
+	
+			for childKey in pairs(removeKeys) do
+				virtualNode.children[childKey] = nil
+			end
+	
+	
+			for childKey, newElement in ElementUtils.iterateElements(newChildElements) do
+				local concreteKey = childKey
+				if childKey == ElementUtils.UseParentKey then
+					concreteKey = virtualNode.hostKey
+				end
+	
+				if virtualNode.children[childKey] == nil then
+					local childNode = mountVirtualNode(
+						newElement,
+						hostParent,
+						concreteKey,
+						virtualNode.context,
+						virtualNode.legacyContext
+					)
+	
+	
+					if childNode ~= nil then
+						childNode.depth = virtualNode.depth + 1
+						childNode.parent = virtualNode
+						virtualNode.children[childKey] = childNode
+					end
+				end
+			end
+		end
+	
+		local function updateVirtualNodeWithChildren(virtualNode, hostParent, newChildElements)
+			updateChildren(virtualNode, hostParent, newChildElements)
+		end
+	
+		local function updateVirtualNodeWithRenderResult(virtualNode, hostParent, renderResult)
+			if Type.of(renderResult) == Type.Element
+				or renderResult == nil
+				or typeof(renderResult) == "boolean"
+			then
+				updateChildren(virtualNode, hostParent, renderResult)
+			else
+				error(("%s\n%s"):format(
+					"Component returned invalid children:",
+					virtualNode.currentElement.source or "<enable element tracebacks>"
+				), 0)
+			end
+		end
+	
+	
+			Unmounts the given virtual node and releases any held resources.
+		]]
+		function unmountVirtualNode(virtualNode)
+			if config.internalTypeChecks then
+				internalAssert(Type.of(virtualNode) == Type.VirtualNode, "Expected arg #1 to be of type VirtualNode")
+			end
+	
+			local kind = ElementKind.of(virtualNode.currentElement)
+	
+			if kind == ElementKind.Host then
+				renderer.unmountHostNode(reconciler, virtualNode)
+			elseif kind == ElementKind.Function then
+				for _, childNode in pairs(virtualNode.children) do
+					unmountVirtualNode(childNode)
+				end
+			elseif kind == ElementKind.Stateful then
+				virtualNode.instance:__unmount()
+			elseif kind == ElementKind.Portal then
+				for _, childNode in pairs(virtualNode.children) do
+					unmountVirtualNode(childNode)
+				end
+			elseif kind == ElementKind.Fragment then
+				for _, childNode in pairs(virtualNode.children) do
+					unmountVirtualNode(childNode)
+				end
+			else
+				error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+			end
+		end
+	
+		local function updateFunctionVirtualNode(virtualNode, newElement)
+			local children = newElement.component(newElement.props)
+	
+			updateVirtualNodeWithRenderResult(virtualNode, virtualNode.hostParent, children)
+	
+			return virtualNode
+		end
+	
+		local function updatePortalVirtualNode(virtualNode, newElement)
+			local oldElement = virtualNode.currentElement
+			local oldTargetHostParent = oldElement.props.target
+	
+			local targetHostParent = newElement.props.target
+	
+			assert(renderer.isHostObject(targetHostParent), "Expected target to be host object")
+	
+			if targetHostParent ~= oldTargetHostParent then
+				return replaceVirtualNode(virtualNode, newElement)
+			end
+	
+			local children = newElement.props[Children]
+	
+			updateVirtualNodeWithChildren(virtualNode, targetHostParent, children)
+	
+			return virtualNode
+		end
+	
+		local function updateFragmentVirtualNode(virtualNode, newElement)
+			updateVirtualNodeWithChildren(virtualNode, virtualNode.hostParent, newElement.elements)
+	
+			return virtualNode
+		end
+	
+	
+			Update the given virtual node using a new element describing what it
+			should transform into.
+	
+			`updateVirtualNode` will return a new virtual node that should replace
+			the passed in virtual node. This is because a virtual node can be
+			updated with an element referencing a different component!
+	
+			In that case, `updateVirtualNode` will unmount the input virtual node,
+			mount a new virtual node, and return it in this case, while also issuing
+			a warning to the user.
+		]]
+		function updateVirtualNode(virtualNode, newElement, newState)
+			if config.internalTypeChecks then
+				internalAssert(Type.of(virtualNode) == Type.VirtualNode, "Expected arg #1 to be of type VirtualNode")
+			end
+			if config.typeChecks then
+				assert(
+					Type.of(newElement) == Type.Element or typeof(newElement) == "boolean" or newElement == nil,
+					"Expected arg #2 to be of type Element, boolean, or nil"
+				)
+			end
+	
+	
+			if virtualNode.currentElement == newElement and newState == nil then
+				return virtualNode
+			end
+	
+			if typeof(newElement) == "boolean" or newElement == nil then
+				unmountVirtualNode(virtualNode)
+				return nil
+			end
+	
+			if virtualNode.currentElement.component ~= newElement.component then
+				return replaceVirtualNode(virtualNode, newElement)
+			end
+	
+			local kind = ElementKind.of(newElement)
+	
+			local shouldContinueUpdate = true
+	
+			if kind == ElementKind.Host then
+				virtualNode = renderer.updateHostNode(reconciler, virtualNode, newElement)
+			elseif kind == ElementKind.Function then
+				virtualNode = updateFunctionVirtualNode(virtualNode, newElement)
+			elseif kind == ElementKind.Stateful then
+				shouldContinueUpdate = virtualNode.instance:__update(newElement, newState)
+			elseif kind == ElementKind.Portal then
+				virtualNode = updatePortalVirtualNode(virtualNode, newElement)
+			elseif kind == ElementKind.Fragment then
+				virtualNode = updateFragmentVirtualNode(virtualNode, newElement)
+			else
+				error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+			end
+	
+	
+	
+			if not shouldContinueUpdate then
+				return virtualNode
+			end
+	
+			virtualNode.currentElement = newElement
+	
+			return virtualNode
+		end
+	
+	
+			Constructs a new virtual node but not does mount it.
+		]]
+		local function createVirtualNode(element, hostParent, hostKey, context, legacyContext)
+			if config.internalTypeChecks then
+				internalAssert(renderer.isHostObject(hostParent) or hostParent == nil, "Expected arg #2 to be a host object")
+				internalAssert(typeof(context) == "table" or context == nil, "Expected arg #4 to be of type table or nil")
+				internalAssert(
+					typeof(legacyContext) == "table" or legacyContext == nil,
+					"Expected arg #5 to be of type table or nil"
+				)
+			end
+			if config.typeChecks then
+				assert(hostKey ~= nil, "Expected arg #3 to be non-nil")
+				assert(
+					Type.of(element) == Type.Element or typeof(element) == "boolean",
+					"Expected arg #1 to be of type Element or boolean"
+				)
+			end
+	
+			return {
+				[Type] = Type.VirtualNode,
+				currentElement = element,
+				depth = 1,
+				parent = nil,
+				children = {},
+				hostParent = hostParent,
+				hostKey = hostKey,
+	
+	
+	
+				legacyContext = legacyContext,
+	
+	
+				parentLegacyContext = legacyContext,
+	
+	
+	
+				context = context or {},
+	
+	
+	
+				originalContext = nil,
+			}
+		end
+	
+		local function mountFunctionVirtualNode(virtualNode)
+			local element = virtualNode.currentElement
+	
+			local children = element.component(element.props)
+	
+			updateVirtualNodeWithRenderResult(virtualNode, virtualNode.hostParent, children)
+		end
+	
+		local function mountPortalVirtualNode(virtualNode)
+			local element = virtualNode.currentElement
+	
+			local targetHostParent = element.props.target
+			local children = element.props[Children]
+	
+			assert(renderer.isHostObject(targetHostParent), "Expected target to be host object")
+	
+			updateVirtualNodeWithChildren(virtualNode, targetHostParent, children)
+		end
+	
+		local function mountFragmentVirtualNode(virtualNode)
+			local element = virtualNode.currentElement
+			local children = element.elements
+	
+			updateVirtualNodeWithChildren(virtualNode, virtualNode.hostParent, children)
+		end
+	
+	
+			Constructs a new virtual node and mounts it, but does not place it into
+			the tree.
+		]]
+		function mountVirtualNode(element, hostParent, hostKey, context, legacyContext)
+			if config.internalTypeChecks then
+				internalAssert(renderer.isHostObject(hostParent) or hostParent == nil, "Expected arg #2 to be a host object")
+				internalAssert(
+					typeof(legacyContext) == "table" or legacyContext == nil,
+					"Expected arg #5 to be of type table or nil"
+				)
+			end
+			if config.typeChecks then
+				assert(hostKey ~= nil, "Expected arg #3 to be non-nil")
+				assert(
+					Type.of(element) == Type.Element or typeof(element) == "boolean",
+					"Expected arg #1 to be of type Element or boolean"
+				)
+			end
+	
+	
+			if typeof(element) == "boolean" then
+				return nil
+			end
+	
+			local kind = ElementKind.of(element)
+	
+			local virtualNode = createVirtualNode(element, hostParent, hostKey, context, legacyContext)
+	
+			if kind == ElementKind.Host then
+				renderer.mountHostNode(reconciler, virtualNode)
+			elseif kind == ElementKind.Function then
+				mountFunctionVirtualNode(virtualNode)
+			elseif kind == ElementKind.Stateful then
+				element.component:__mount(reconciler, virtualNode)
+			elseif kind == ElementKind.Portal then
+				mountPortalVirtualNode(virtualNode)
+			elseif kind == ElementKind.Fragment then
+				mountFragmentVirtualNode(virtualNode)
+			else
+				error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+			end
+	
+			return virtualNode
+		end
+	
+	
+			Constructs a new Roact virtual tree, constructs a root node for
+			it, and mounts it.
+		]]
+		local function mountVirtualTree(element, hostParent, hostKey)
+			if config.typeChecks then
+				assert(Type.of(element) == Type.Element, "Expected arg #1 to be of type Element")
+				assert(renderer.isHostObject(hostParent) or hostParent == nil, "Expected arg #2 to be a host object")
+			end
+	
+			if hostKey == nil then
+				hostKey = "RoactTree"
+			end
+	
+			local tree = {
+				[Type] = Type.VirtualTree,
+				[InternalData] = {
+	
+	
+					rootNode = nil,
+					mounted = true,
+				},
+			}
+	
+			tree[InternalData].rootNode = mountVirtualNode(element, hostParent, hostKey)
+	
+			return tree
+		end
+	
+	
+			Unmounts the virtual tree, freeing all of its resources.
+	
+			No further operations should be done on the tree after it's been
+			unmounted, as indicated by its the `mounted` field.
+		]]
+		local function unmountVirtualTree(tree)
+			local internalData = tree[InternalData]
+			if config.typeChecks then
+				assert(Type.of(tree) == Type.VirtualTree, "Expected arg #1 to be a Roact handle")
+				assert(internalData.mounted, "Cannot unmounted a Roact tree that has already been unmounted")
+			end
+	
+			internalData.mounted = false
+	
+			if internalData.rootNode ~= nil then
+				unmountVirtualNode(internalData.rootNode)
+			end
+		end
+	
+	
+			Utility method for updating the root node of a virtual tree given a new
+			element.
+		]]
+		local function updateVirtualTree(tree, newElement)
+			local internalData = tree[InternalData]
+			if config.typeChecks then
+				assert(Type.of(tree) == Type.VirtualTree, "Expected arg #1 to be a Roact handle")
+				assert(Type.of(newElement) == Type.Element, "Expected arg #2 to be a Roact Element")
+			end
+	
+			internalData.rootNode = updateVirtualNode(internalData.rootNode, newElement)
+	
+			return tree
+		end
+	
+		local function suspendParentEvents(virtualNode)
+			local parentNode = virtualNode.parent
+			while parentNode do
+				if parentNode.eventManager ~= nil then
+					parentNode.eventManager:suspend()
+				end
+	
+				parentNode = parentNode.parent
+			end
+		end
+	
+		local function resumeParentEvents(virtualNode)
+			local parentNode = virtualNode.parent
+			while parentNode do
+				if parentNode.eventManager ~= nil then
+					parentNode.eventManager:resume()
+				end
+	
+				parentNode = parentNode.parent
+			end
+		end
+	
+		reconciler = {
+			mountVirtualTree = mountVirtualTree,
+			unmountVirtualTree = unmountVirtualTree,
+			updateVirtualTree = updateVirtualTree,
+	
+			createVirtualNode = createVirtualNode,
+			mountVirtualNode = mountVirtualNode,
+			unmountVirtualNode = unmountVirtualNode,
+			updateVirtualNode = updateVirtualNode,
+			updateVirtualNodeWithChildren = updateVirtualNodeWithChildren,
+			updateVirtualNodeWithRenderResult = updateVirtualNodeWithRenderResult,
+	
+			suspendParentEvents = suspendParentEvents,
+			resumeParentEvents = resumeParentEvents,
+		}
+	
+		return reconciler
+	end
+	
+	return createReconciler
+	
+end, newEnv("Havoc.createReconciler"))() end)
+
+newModule("createReconcilerCompat", "ModuleScript", "Havoc.createReconcilerCompat", "Havoc.include", function () return setfenv(function()
+	
+		Contains deprecated methods from Reconciler. Broken out so that removing
+		this shim is easy
+	]]
+	
+	local Logging = require(script.Parent.Logging)
+	
+	local reifyMessage = [[
+	Roact.reify has been renamed to Roact.mount and will be removed in a future release.
+	Check the call to Roact.reify at:
+	]]
+	
+	local teardownMessage = [[
+	Roact.teardown has been renamed to Roact.unmount and will be removed in a future release.
+	Check the call to Roact.teardown at:
+	]]
+	
+	local reconcileMessage = [[
+	Roact.reconcile has been renamed to Roact.update and will be removed in a future release.
+	Check the call to Roact.reconcile at:
+	]]
+	
+	local function createReconcilerCompat(reconciler)
+		local compat = {}
+	
+		function compat.reify(...)
+			Logging.warnOnce(reifyMessage)
+	
+			return reconciler.mountVirtualTree(...)
+		end
+	
+		function compat.teardown(...)
+			Logging.warnOnce(teardownMessage)
+	
+			return reconciler.unmountVirtualTree(...)
+		end
+	
+		function compat.reconcile(...)
+			Logging.warnOnce(reconcileMessage)
+	
+			return reconciler.updateVirtualTree(...)
+		end
+	
+		return compat
+	end
+	
+	return createReconcilerCompat
+end, newEnv("Havoc.createReconcilerCompat"))() end)
+
+newModule("createReducer", "ModuleScript", "Havoc.createReducer", "Havoc.include", function () return setfenv(function()
+	return function(initialState, handlers)
+		return function(state, action)
+			if state == nil then
+				state = initialState
+			end
+	
+			local handler = handlers[action.type]
+	
+			if handler then
+				return handler(state, action)
+			end
+	
+			return state
+		end
+	end
+	
+end, newEnv("Havoc.createReducer"))() end)
+
+newModule("createRef", "ModuleScript", "Havoc.createRef", "Havoc.include", function () return setfenv(function()
+	
+		A ref is nothing more than a binding with a special field 'current'
+		that maps to the getValue method of the binding
+	]]
+	local Binding = require(script.Parent.Binding)
+	
+	local function createRef()
+		local binding, _ = Binding.create(nil)
+	
+		local ref = {}
+	
+	
+			A ref is just redirected to a binding via its metatable
+		]]
+		setmetatable(ref, {
+			__index = function(self, key)
+				if key == "current" then
+					return binding:getValue()
+				else
+					return binding[key]
+				end
+			end,
+			__newindex = function(self, key, value)
+				if key == "current" then
+					error("Cannot assign to the 'current' property of refs", 2)
+				end
+	
+				binding[key] = value
+			end,
+			__tostring = function(self)
+				return ("RoactRef(%s)"):format(tostring(binding:getValue()))
+			end,
+		})
+	
+		return ref
+	end
+	
+	return createRef
+end, newEnv("Havoc.createRef"))() end)
+
+newModule("createSignal", "ModuleScript", "Havoc.createSignal", "Havoc.include", function () return setfenv(function()
+	
+		This is a simple signal implementation that has a dead-simple API.
+	
+			local signal = createSignal()
+	
+			local disconnect = signal:subscribe(function(foo)
+				print("Cool foo:", foo)
+			end)
+	
+			signal:fire("something")
+	
+			disconnect()
+	]]
+	
+	local function createSignal()
+		local connections = {}
+		local suspendedConnections = {}
+		local firing = false
+	
+		local function subscribe(self, callback)
+			assert(typeof(callback) == "function", "Can only subscribe to signals with a function.")
+	
+			local connection = {
+				callback = callback,
+				disconnected = false,
+			}
+	
+	
+	
+			if firing and not connections[callback] then
+				suspendedConnections[callback] = connection
+			end
+	
+			connections[callback] = connection
+	
+			local function disconnect()
+				assert(not connection.disconnected, "Listeners can only be disconnected once.")
+	
+				connection.disconnected = true
+				connections[callback] = nil
+				suspendedConnections[callback] = nil
+			end
+	
+			return disconnect
+		end
+	
+		local function fire(self, ...)
+			firing = true
+			for callback, connection in pairs(connections) do
+				if not connection.disconnected and not suspendedConnections[callback] then
+					callback(...)
+				end
+			end
+	
+			firing = false
+	
+			for callback, _ in pairs(suspendedConnections) do
+				suspendedConnections[callback] = nil
+			end
+		end
+	
+		return {
+			subscribe = subscribe,
+			fire = fire,
+		}
+	end
+	
+	return createSignal
+	
+end, newEnv("Havoc.createSignal"))() end)
+
+newModule("createSpy", "ModuleScript", "Havoc.createSpy", "Havoc.include", function () return setfenv(function()
+	
+		A utility used to create a function spy that can be used to robustly test
+		that functions are invoked the correct number of times and with the correct
+		number of arguments.
+	
+		This should only be used in tests.
+	]]
+	
+	local assertDeepEqual = require(script.Parent.assertDeepEqual)
+	
+	local function createSpy(inner)
+		local self = {
+			callCount = 0,
+			values = {},
+			valuesLength = 0,
+		}
+	
+		self.value = function(...)
+			self.callCount = self.callCount + 1
+			self.values = {...}
+			self.valuesLength = select("#", ...)
+	
+			if inner ~= nil then
+				return inner(...)
+			end
+		end
+	
+		self.assertCalledWith = function(_, ...)
+			local len = select("#", ...)
+	
+			if self.valuesLength ~= len then
+				error(("Expected %d arguments, but was called with %d arguments"):format(
+					self.valuesLength,
+					len
+				), 2)
+			end
+	
+			for i = 1, len do
+				local expected = select(i, ...)
+	
+				assert(self.values[i] == expected, "value differs")
+			end
+		end
+	
+		self.assertCalledWithDeepEqual = function(_, ...)
+			local len = select("#", ...)
+	
+			if self.valuesLength ~= len then
+				error(("Expected %d arguments, but was called with %d arguments"):format(
+					self.valuesLength,
+					len
+				), 2)
+			end
+	
+			for i = 1, len do
+				local expected = select(i, ...)
+	
+				assertDeepEqual(self.values[i], expected)
+			end
+		end
+	
+		self.captureValues = function(_, ...)
+			local len = select("#", ...)
+			local result = {}
+	
+			assert(self.valuesLength == len, "length of expected values differs from stored values")
+	
+			for i = 1, len do
+				local key = select(i, ...)
+				result[key] = self.values[i]
+			end
+	
+			return result
+		end
+	
+		setmetatable(self, {
+			__index = function(_, key)
+				error(("%q is not a valid member of spy"):format(key))
+			end,
+		})
+	
+		return self
+	end
+	
+	return createSpy
+end, newEnv("Havoc.createSpy"))() end)
+
+newModule("forwardRef", "ModuleScript", "Havoc.forwardRef", "Havoc.include", function () return setfenv(function()
+	local assign = require(script.Parent.assign)
+	local None = require(script.Parent.None)
+	local Ref = require(script.Parent.PropMarkers.Ref)
+	
+	local config = require(script.Parent.GlobalConfig).get()
+	
+	local excludeRef = {
+		[Ref] = None,
+	}
+	
+	
+		Allows forwarding of refs to underlying host components. Accepts a render
+		callback which accepts props and a ref, and returns an element.
+	]]
+	local function forwardRef(render)
+		if config.typeChecks then
+			assert(typeof(render) == "function", "Expected arg #1 to be a function")
+		end
+	
+		return function(props)
+			local ref = props[Ref]
+			local propsWithoutRef = assign({}, props, excludeRef)
+	
+			return render(propsWithoutRef, ref)
+		end
+	end
+	
+	return forwardRef
+end, newEnv("Havoc.forwardRef"))() end)
+
+newModule("getDefaultInstanceProperty", "ModuleScript", "Havoc.getDefaultInstanceProperty", "Havoc.include", function () return setfenv(function()
+	
+		Attempts to get the default value of a given property on a Roblox instance.
+	
+		This is used by the reconciler in cases where a prop was previously set on a
+		primitive component, but is no longer present in a component's new props.
+	
+		Eventually, Roblox might provide a nicer API to query the default property
+		of an object without constructing an instance of it.
+	]]
+	
+	local Symbol = require(script.Parent.Symbol)
+	
+	local Nil = Symbol.named("Nil")
+	local _cachedPropertyValues = {}
+	
+	local function getDefaultInstanceProperty(className, propertyName)
+		local classCache = _cachedPropertyValues[className]
+	
+		if classCache then
+			local propValue = classCache[propertyName]
+	
+	
+	
+			if propValue == Nil then
+				return true, nil
+			end
+	
+			if propValue ~= nil then
+				return true, propValue
+			end
+		else
+			classCache = {}
+			_cachedPropertyValues[className] = classCache
+		end
+	
+		local created = Instance.new(className)
+		local ok, defaultValue = pcall(function()
+			return created[propertyName]
+		end)
+	
+		created:Destroy()
+	
+		if ok then
+			if defaultValue == nil then
+				classCache[propertyName] = Nil
+			else
+				classCache[propertyName] = defaultValue
+			end
+		end
+	
+		return ok, defaultValue
+	end
+	
+	return getDefaultInstanceProperty
+end, newEnv("Havoc.getDefaultInstanceProperty"))() end)
+
+newModule("hoc", "ModuleScript", "Havoc.hoc", "Havoc.include", function () return setfenv(function()
+	local Roact = require(script.Parent.Roact)
+	local hooks = require(script.Parent.hooks)
+	local prepareToUseHooks = hooks.prepareToUseHooks
+	local finishHooks = hooks.finishHooks
+	local commitHookEffectListUpdate = hooks.commitHookEffectListUpdate
+	local commitHookEffectListUnmount = hooks.commitHookEffectListUnmount
+	
+	local function withHooksImpl(Component, Class, api)
+		local componentName = debug.info(Component, "n") or "Component"
+		if componentName == "" then
+			componentName = "Component"
+		end
+	
+		local Proxy = Class:extend(componentName .. " (roact-hooked)")
+	
+		Proxy._name = componentName
+	
+		function Proxy:render()
+			prepareToUseHooks(self)
+			local children = Component(self.props)
+			finishHooks()
+			return children
+		end
+	
+		function Proxy:didMount()
+			commitHookEffectListUpdate(self)
+		end
+	
+		function Proxy:didUpdate()
+			commitHookEffectListUpdate(self)
+		end
+	
+		function Proxy:willUnmount()
+			commitHookEffectListUnmount(self)
+		end
+	
+		if api and type(api) == "table" then
+			for k, v in pairs(api) do
+				Proxy[k] = v
+			end
+		end
+	
+		return Proxy
+	end
+	
+	local function withHooks(Component, api)
+		return withHooksImpl(Component, Roact.Component, api)
+	end
+	
+	local function withHooksPure(Component, api)
+		return withHooksImpl(Component, Roact.PureComponent, api)
+	end
+	
+	return {
+		withHooks = withHooks,
+		withHooksPure = withHooksPure,
+	}
+	
+end, newEnv("Havoc.hoc"))() end)
+
+newModule("hooks", "ModuleScript", "Havoc.hooks", "Havoc.include", function () return setfenv(function()
+	
+	
+	
+	local Roact = require(script.Parent.Roact)
+	local NoYield = require(script.Parent.NoYield)
+	
+	local currentlyRenderingComponent
+	local hookCount = 0
+	local workInProgressHook
+	
+	local isReRender
+	
+	
+	local didUseHooks = false
+	local forceEarlyExit = false
+	
+	local function finishHookTest()
+		forceEarlyExit = false
+		return didUseHooks
+	end
+	
+	local function prepareHookTest()
+		didUseHooks = false
+		forceEarlyExit = true
+	end
+	
+	local function finishHooks()
+		currentlyRenderingComponent = nil
+		hookCount = 0
+		workInProgressHook = nil
+	end
+	
+	local function prepareToUseHooks(componentIdentity)
+		if workInProgressHook ~= nil then
+			local prev = currentlyRenderingComponent._name
+			local current = componentIdentity._name
+			warn(
+				`The component '{prev}' did not finish rendering before '{current}' started rendering. Did the former yield or fail to run?`
+			)
+			finishHooks()
+		end
+	
+		currentlyRenderingComponent = componentIdentity
+	end
+	
+	local function resolveCurrentlyRenderingComponent()
+		didUseHooks = true
+	
+		if forceEarlyExit or not currentlyRenderingComponent then
+			error(
+				"Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n"
+					.. "1. You might be using hooks outside of the withHooks() HOC\n"
+					.. "2. You might be breaking the Rules of Hooks\n"
+					.. "3. A hooked component may have yielded or thrown an error\n"
+			)
+		end
+	
+		return currentlyRenderingComponent
+	end
+	
+	local function areHookInputsEqual(nextDeps, prevDeps)
+		if not prevDeps then
+			return false
+		end
+	
+		if type(nextDeps) ~= type(prevDeps) then
+			return false
+		end
+	
+		if type(nextDeps) == "table" then
+			for key, value in pairs(nextDeps) do
+				if prevDeps[key] ~= value then
+					return false
+				end
+			end
+	
+			for key, value in pairs(prevDeps) do
+				if nextDeps[key] ~= value then
+					return false
+				end
+			end
+	
+			return true
+		end
+	
+		return nextDeps == prevDeps
+	end
+	
+	local function createHook()
+		return {
+			memoizedState = nil,
+			next = nil,
+			index = hookCount,
+		}
+	end
+	
+	local function createWorkInProgressHook()
+		hookCount += 1
+	
+		if not workInProgressHook then
+	
+			if not currentlyRenderingComponent.firstHook then
+	
+				isReRender = false
+	
+				local hook = createHook()
+				currentlyRenderingComponent.firstHook = hook
+				workInProgressHook = hook
+			else
+	
+				isReRender = true
+				workInProgressHook = currentlyRenderingComponent.firstHook
+			end
+		else
+			if not workInProgressHook.next then
+				isReRender = false
+	
+	
+				local hook = createHook()
+				workInProgressHook.next = hook
+				workInProgressHook = hook
+			else
+				isReRender = true
+				workInProgressHook = workInProgressHook.next
+			end
+		end
+	
+		return workInProgressHook
+	end
+	
+	local function commitHookEffectListUpdate(componentIdentity)
+		local lastEffect = componentIdentity.lastEffect
+	
+		if not lastEffect then
+			return
+		end
+	
+		local firstEffect = lastEffect.next
+		local effect = firstEffect
+	
+		repeat
+			if effect.prevDeps and areHookInputsEqual(effect.deps, effect.prevDeps) then
+	
+				effect = effect.next
+				continue
+			end
+	
+	
+			local destroy = effect.destroy
+			effect.destroy = nil
+	
+			if type(destroy) == "function" then
+				NoYield(destroy)
+			end
+	
+	
+			NoYield(function()
+				effect.destroy = effect.create()
+			end)
+	
+			effect = effect.next
+		until effect == firstEffect
+	end
+	
+	local function commitHookEffectListUnmount(componentIdentity)
+		local lastEffect = componentIdentity.lastEffect
+	
+		if not lastEffect then
+			return
+		end
+	
+		local firstEffect = lastEffect.next
+		local effect = firstEffect
+	
+		repeat
+	
+			local destroy = effect.destroy
+			effect.destroy = nil
+	
+			if type(destroy) == "function" then
+				NoYield(destroy)
+			end
+	
+			effect = effect.next
+		until effect == firstEffect
+	end
+	
+	local function pushEffect(create, destroy, deps)
+		resolveCurrentlyRenderingComponent()
+	
+		local effect = {
+			create = create,
+			destroy = destroy,
+			deps = deps,
+			prevDeps = nil,
+			next = nil,
+		}
+	
+		local lastEffect = currentlyRenderingComponent.lastEffect
+	
+		if lastEffect then
+			local firstEffect = lastEffect.next
+			lastEffect.next = effect
+			effect.next = firstEffect
+			currentlyRenderingComponent.lastEffect = effect
+		else
+			effect.next = effect
+			currentlyRenderingComponent.lastEffect = effect
+		end
+	
+		return effect
+	end
+	
+	local function useEffect(create, deps)
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+	
+		if not isReRender then
+			hook.memoizedState = pushEffect(create, nil, deps)
+		else
+			hook.memoizedState.prevDeps = hook.memoizedState.deps
+			hook.memoizedState.deps = deps
+			hook.memoizedState.create = create
+		end
+	end
+	
+	local function basicStateReducer(state, action)
+		if type(action) == "function" then
+			return action(state)
+		else
+			return action
+		end
+	end
+	
+	local function useReducer(reducer, initialArg, init)
+		local component = resolveCurrentlyRenderingComponent()
+		local hook = createWorkInProgressHook()
+	
+	
+		if not isReRender then
+			local initialState
+	
+			if reducer == basicStateReducer then
+	
+				if type(initialArg) == "function" then
+					initialState = initialArg()
+				else
+					initialState = initialArg
+				end
+			else
+				if init then
+					initialState = init(initialArg)
+				else
+					initialState = initialArg
+				end
+			end
+	
+			local function dispatch(action)
+				local nextState = reducer(hook.memoizedState.state, action)
+	
+				if nextState == hook.memoizedState.state then
+					return
+				end
+	
+				hook.memoizedState.state = nextState
+	
+				component:setState({
+					[hook.index] = nextState,
+				})
+			end
+	
+			hook.memoizedState = {
+				dispatch = dispatch,
+				state = initialState,
+			}
+		end
+	
+		return hook.memoizedState.state, hook.memoizedState.dispatch
+	end
+	
+	local function useState(initialState)
+	
+		return useReducer(basicStateReducer, initialState)
+	end
+	
+	local function useMemo(create, deps)
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+		local prevState = hook.memoizedState
+	
+		if prevState ~= nil and deps ~= nil and areHookInputsEqual(deps, prevState.deps) then
+			return prevState.value
+		end
+	
+		local value = create()
+		hook.memoizedState = { value = value, deps = deps }
+	
+		return value
+	end
+	
+	local function useCallback(callback, deps)
+		return useMemo(function()
+			return callback
+		end, deps)
+	end
+	
+	local function useMutable(initialValue)
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+	
+		if not isReRender then
+			hook.memoizedState = { current = initialValue }
+		end
+	
+		return hook.memoizedState
+	end
+	
+	local function useRef()
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+	
+		if not isReRender then
+			hook.memoizedState = Roact.createRef()
+		end
+	
+		return hook.memoizedState
+	end
+	
+	local function useBinding(initialValue)
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+	
+		if not isReRender then
+			local binding, setValue = Roact.createBinding(initialValue)
+			hook.memoizedState = { binding = binding, setValue = setValue }
+		end
+	
+		return hook.memoizedState.binding, hook.memoizedState.setValue
+	end
+	
+	local function useContext(context)
+		resolveCurrentlyRenderingComponent()
+	
+		local hook = createWorkInProgressHook()
+	
+		if not isReRender then
+	
+			local memoizedState = {
+				fakeConsumer = setmetatable({}, {
+					__index = currentlyRenderingComponent,
+				}),
+				initialValue = nil,
+			}
+	
+			local initialValue
+	
+			memoizedState.fakeConsumer.props = {
+				render = function(value)
+					initialValue = value
+				end,
+			}
+	
+	
+			context.Consumer.render(memoizedState.fakeConsumer)
+	
+			memoizedState.initialValue = initialValue
+			hook.memoizedState = memoizedState
+		end
+	
+	
+		context.Consumer.init(hook.memoizedState.fakeConsumer)
+	
+		local contextEntry = hook.memoizedState.fakeConsumer.contextEntry
+		local initialValue = hook.memoizedState.initialValue
+	
+		local value, setValue = useState(if contextEntry == nil then initialValue else contextEntry.value)
+	
+		useEffect(function()
+			if contextEntry == nil then
+				if value ~= initialValue then
+					setValue(initialValue)
+				end
+				return
+			end
+	
+			if value ~= contextEntry.value then
+				setValue(contextEntry.value)
+			end
+	
+			return contextEntry.onUpdate:subscribe(setValue)
+		end, { contextEntry })
+	
+		return value
+	end
+	
+	return {
+	
+		useBinding = useBinding,
+		useCallback = useCallback,
+		useContext = useContext,
+		useEffect = useEffect,
+		useMemo = useMemo,
+		useMutable = useMutable,
+		useReducer = useReducer,
+		useRef = useRef,
+		useState = useState,
+	
+	
+		prepareHookTest = prepareHookTest,
+		finishHookTest = finishHookTest,
+		commitHookEffectListUpdate = commitHookEffectListUpdate,
+		commitHookEffectListUnmount = commitHookEffectListUnmount,
+		prepareToUseHooks = prepareToUseHooks,
+		finishHooks = finishHooks,
+	}
+	
+end, newEnv("Havoc.hooks"))() end)
+
+newModule("init", "ModuleScript", "Havoc.init", "Havoc.include", function () return setfenv(function()
+	
+	
+		*
+		* Returns a table wherein an object's writable properties can be specified,
+		* while also allowing functions to be passed in which can be bound to a RBXScriptSignal.
+	]]
+	
+		*
+		* Instantiates a new Instance of `className` with given `settings`,
+		* where `settings` is an object of the form { [K: propertyName]: value }.
+		*
+		* `settings.Children` is an array of child objects to be parented to the generated Instance.
+		*
+		* Events can be set to a callback function, which will be connected.
+		*
+		* `settings.Parent` is always set last.
+	]]
+	local function Make(className, settings)
+		local _binding = settings
+		local children = _binding.Children
+		local parent = _binding.Parent
+		local instance = Instance.new(className)
+		for setting, value in pairs(settings) do
+			if setting ~= "Children" and setting ~= "Parent" then
+				local _binding_1 = instance
+				local prop = _binding_1[setting]
+				if typeof(prop) == "RBXScriptSignal" then
+					prop:Connect(value)
+				else
+					instance[setting] = value
+				end
+			end
+		end
+		if children then
+			for _, child in ipairs(children) do
+				child.Parent = instance
+			end
+		end
+		instance.Parent = parent
+		return instance
+	end
+	return Make
+	
+end, newEnv("Havoc.init"))() end)
+
+newModule("internalAssert", "ModuleScript", "Havoc.internalAssert", "Havoc.include", function () return setfenv(function()
+	local function internalAssert(condition, message)
+		if not condition then
+			error(message .. " (This is probably a bug in Roact!)", 3)
+		end
+	end
+	
+	return internalAssert
+end, newEnv("Havoc.internalAssert"))() end)
+
+newModule("invalidSetStateMessages", "ModuleScript", "Havoc.invalidSetStateMessages", "Havoc.include", function () return setfenv(function()
+	
+		These messages are used by Component to help users diagnose when they're
+		calling setState in inappropriate places.
+	
+		The indentation may seem odd, but it's necessary to avoid introducing extra
+		whitespace into the error messages themselves.
+	]]
+	local ComponentLifecyclePhase = require(script.Parent.ComponentLifecyclePhase)
+	
+	local invalidSetStateMessages = {}
+	
+	invalidSetStateMessages[ComponentLifecyclePhase.WillUpdate] = [[
+	setState cannot be used in the willUpdate lifecycle method.
+	Consider using the didUpdate method instead, or using getDerivedStateFromProps.
+	
+	Check the definition of willUpdate in the component %q.]]
+	
+	invalidSetStateMessages[ComponentLifecyclePhase.WillUnmount] = [[
+	setState cannot be used in the willUnmount lifecycle method.
+	A component that is being unmounted cannot be updated!
+	
+	Check the definition of willUnmount in the component %q.]]
+	
+	invalidSetStateMessages[ComponentLifecyclePhase.ShouldUpdate] = [[
+	setState cannot be used in the shouldUpdate lifecycle method.
+	shouldUpdate must be a pure function that only depends on props and state.
+	
+	Check the definition of shouldUpdate in the component %q.]]
+	
+	invalidSetStateMessages[ComponentLifecyclePhase.Render] = [[
+	setState cannot be used in the render method.
+	render must be a pure function that only depends on props and state.
+	
+	Check the definition of render in the component %q.]]
+	
+	invalidSetStateMessages["default"] = [[
+	setState can not be used in the current situation, because Roact doesn't know
+	which part of the lifecycle this component is in.
+	
+	This is a bug in Roact.
+	It was triggered by the component %q.
+	]]
+	
+	return invalidSetStateMessages
+end, newEnv("Havoc.invalidSetStateMessages"))() end)
+
+newModule("loggerMiddleware", "ModuleScript", "Havoc.loggerMiddleware", "Havoc.include", function () return setfenv(function()
+	
+	
+	
+	
+	local prettyPrint = require(script.Parent.prettyPrint)
+	local loggerMiddleware = {
+		outputFunction = print,
+	}
+	
+	function loggerMiddleware.middleware(nextDispatch, store)
+		return function(action)
+			local result = nextDispatch(action)
+	
+			loggerMiddleware.outputFunction(("Action dispatched: %s\nState changed to: %s"):format(
+				prettyPrint(action),
+				prettyPrint(store:getState())
+			))
+	
+			return result
+		end
+	end
+	
+	return loggerMiddleware
+	
+end, newEnv("Havoc.loggerMiddleware"))() end)
+
+newModule("makeActionCreator", "ModuleScript", "Havoc.makeActionCreator", "Havoc.include", function () return setfenv(function()
+	--[[
+		A helper function to define a Rodux action creator with an associated name.
+	]]
+	local function makeActionCreator(name, fn)
+		assert(type(name) == "string", "Bad argument #1: Expected a string name for the action creator")
+	
+		assert(type(fn) == "function", "Bad argument #2: Expected a function that creates action objects")
+	
+		return setmetatable({
+			name = name,
+		}, {
+			__call = function(self, ...)
+				local result = fn(...)
+	
+				assert(type(result) == "table", "Invalid action: An action creator must return a table")
+	
+				result.type = name
+	
+				return result
+			end
+		})
+	end
+	
+	return makeActionCreator
+	
+end, newEnv("Havoc.makeActionCreator"))() end)
+
+newModule("oneChild", "ModuleScript", "Havoc.oneChild", "Havoc.include", function () return setfenv(function()
+	
+		Retrieves at most one child from the children passed to a component.
+	
+		If passed nil or an empty table, will return nil.
+	
+		Throws an error if passed more than one child.
+	]]
+	local function oneChild(children)
+		if not children then
+			return nil
+		end
+	
+		local key, child = next(children)
+	
+		if not child then
+			return nil
+		end
+	
+		local after = next(children, key)
+	
+		if after then
+			error("Expected at most child, had more than one child.", 2)
+		end
+	
+		return child
+	end
+	
+	return oneChild
+end, newEnv("Havoc.oneChild"))() end)
+
+newModule("prettyPrint", "ModuleScript", "Havoc.prettyPrint", "Havoc.include", function () return setfenv(function()
+	local indent = "    "
+	
+	local function prettyPrint(value, indentLevel)
+		indentLevel = indentLevel or 0
+		local output = {}
+	
+		if typeof(value) == "table" then
+			table.insert(output, "{\n")
+	
+			for tableKey, tableValue in pairs(value) do
+				table.insert(output, indent:rep(indentLevel + 1))
+				table.insert(output, tostring(tableKey))
+				table.insert(output, " = ")
+	
+				table.insert(output, prettyPrint(tableValue, indentLevel + 1))
+				table.insert(output, "\n")
+			end
+	
+			table.insert(output, indent:rep(indentLevel))
+			table.insert(output, "}")
+		elseif typeof(value) == "string" then
+			table.insert(output, string.format("%q", value))
+			table.insert(output, " (string)")
+		else
+			table.insert(output, tostring(value))
+			table.insert(output, " (")
+			table.insert(output, typeof(value))
+			table.insert(output, ")")
+		end
+	
+		return table.concat(output, "")
+	end
+	
+	return prettyPrint
+end, newEnv("Havoc.prettyPrint"))() end)
+
+newModule("pureComponent", "ModuleScript", "Havoc.pureComponent", "Havoc.include", function () return setfenv(function()
+	local pureComponents = {}
+	
+	local function markPureComponent(functionComponent)
+		pureComponents[functionComponent] = true
+		return functionComponent
+	end
+	
+	local function isPureComponent(functionComponent)
+		return pureComponents[functionComponent]
+	end
+	
+	return {
+		markPureComponent = markPureComponent,
+		isPureComponent = isPureComponent,
+	}
+	
+end, newEnv("Havoc.pureComponent"))() end)
+
+newModule("strict", "ModuleScript", "Havoc.strict", "Havoc.include", function () return setfenv(function()
+	local function strict(t, name)
+		name = name or tostring(t)
+	
+		return setmetatable(t, {
+			__index = function(self, key)
+				local message = ("%q (%s) is not a valid member of %s"):format(
+					tostring(key),
+					typeof(key),
+					name
+				)
+	
+				error(message, 2)
+			end,
+	
+			__newindex = function(self, key, value)
+				local message = ("%q (%s) is not a valid member of %s"):format(
+					tostring(key),
+					typeof(key),
+					name
+				)
+	
+				error(message, 2)
+			end,
+		})
+	end
+	
+	return strict
+end, newEnv("Havoc.strict"))() end)
+
+newModule("thunkMiddleware", "ModuleScript", "Havoc.thunkMiddleware", "Havoc.include", function () return setfenv(function()
+	
+		A middleware that allows for functions to be dispatched.
+		Functions will receive a single argument, the store itself.
+		This middleware consumes the function; middleware further down the chain
+		will not receive it.
+	]]
+	local function tracebackReporter(message)
+		return debug.traceback(message)
+	end
+	
+	local function thunkMiddleware(nextDispatch, store)
+		return function(action)
+			if typeof(action) == "function" then
+				local ok, result = xpcall(function()
+					return action(store)
+				end, tracebackReporter)
+	
+				if not ok then
+	
+					store._errorReporter.reportReducerError(store:getState(), action, {
+						message = "Caught error in thunk",
+						thrownValue = result,
+					})
+					return nil
+				end
+	
+				return result
+			end
+	
+			return nextDispatch(action)
+		end
+	end
+	
+	return thunkMiddleware
+	
+end, newEnv("Havoc.thunkMiddleware"))() end)
+
+newModule("withHookDetection", "ModuleScript", "Havoc.withHookDetection", "Havoc.include", function () return setfenv(function()
+	local hoc = require(script.Parent.hoc)
+	local hooks = require(script.Parent.hooks)
+	local pureComponent = require(script.Parent.pureComponent)
+	
+	local proxyComponents = {}
+	local statelessComponents = {}
+	local modulesWithHookDetection = {}
+	
+	local function withHookDetection(Roact, options)
+		options = options or {}
+	
+		local moduleId = tostring(Roact)
+		local createElement = Roact.createElement
+	
+		local forcePureComponent = if options.forcePureComponent ~= nil then options.forcePureComponent else false
+		local debugMode = if options.debug ~= nil then options.debug else false
+	
+		if modulesWithHookDetection[moduleId] then
+			return
+		end
+	
+		modulesWithHookDetection[moduleId] = true
+	
+		function Roact.createElement(component, props, children)
+			if type(component) ~= "function" or statelessComponents[component] then
+				return createElement(component, props, children)
+			end
+	
+			if proxyComponents[component] then
+	
+				return createElement(proxyComponents[component], props, children)
+			end
+	
+			hooks.prepareHookTest()
+	
+			pcall(component, if props ~= nil then props else {})
+	
+			local didUseHooks = hooks.finishHookTest()
+	
+			if didUseHooks then
+	
+				local proxyComponent
+	
+				if pureComponent.isPureComponent(component) or forcePureComponent then
+					proxyComponent = hoc.withHooksPure(component)
+				else
+					proxyComponent = hoc.withHooks(component)
+				end
+	
+				if debugMode then
+					local render = proxyComponent.render
+	
+					function proxyComponent:render(...)
+						debug.profilebegin(self._name)
+						local success, result = pcall(render, self, ...)
+						debug.profileend()
+	
+						if not success then
+							error(result, 2)
+						end
+	
+						return result
+					end
+				end
+	
+				proxyComponents[component] = proxyComponent
+	
+				return createElement(proxyComponent, props, children)
+			else
+	
+				statelessComponents[component] = true
+				return createElement(component, props, children)
+			end
+		end
+	
+		return Roact
+	end
+	
+	return withHookDetection
+	
+end, newEnv("Havoc.withHookDetection"))() end)
+
+newModule("App", "ModuleScript", "Havoc.App", "Havoc.include", function () return setfenv(function()
 	
 	local TS = require(script.Parent.include.RuntimeLib)
 	local Roact = TS.import(script, TS.getModule(script, "@rbxts", "roact").src)
@@ -2784,8 +7047,8 @@ newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havo
 		local hovered, setHovered = useState(false)
 		local highlightMap = theme.highlight
 		local accent = highlightMap[action] or theme.button.background
-		local background = useSpring((function() if active then return accent elseif hovered then return theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else return theme.button.background end end)(), {})
-		local foreground = useSpring((function() if active and theme.button.foregroundAccent then return theme.button.foregroundAccent else return theme.button.foreground end end)(), {})
+		local background = useSpring(if active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})
+		local foreground = useSpring(if active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.button.foreground, {})
 		return Roact.createElement(BrightButton, {
 			onActivate = function()
 				if active and canDeactivate then
@@ -2813,7 +7076,7 @@ newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havo
 			Roact.createElement("ImageLabel", {
 				Image = image,
 				ImageColor3 = foreground,
-				ImageTransparency = useSpring((function() if active then return 0 elseif hovered then return theme.button.foregroundTransparency - 0.25 else return theme.button.foregroundTransparency end end)(), {}),
+				ImageTransparency = useSpring(if active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),
 				Size = px(36, 36),
 				Position = px(12, 6),
 				BackgroundTransparency = 1,
@@ -3324,7 +7587,7 @@ newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", f
 		local _attributes = {
 			anchor = Vector2.new(0, 1),
 			size = size,
-			position = useSpring((function() if isActive then return position else return positionWhenHidden end end)(), {
+			position = useSpring(if isActive then position else positionWhenHidden, {
 				frequency = 2,
 				dampingRatio = 0.8,
 			}),
@@ -3623,7 +7886,7 @@ newModule("ParallaxImage", "ModuleScript", "Havoc.components.ParallaxImage", "Ha
 	
 end, newEnv("Havoc.components.ParallaxImage"))() end)
 
-newModule("constants", "ModuleScript", "Havoc.constants", "Havoc", function () return setfenv(function()
+newModule("constants", "ModuleScript", "Havoc.constants", "Havoc.include", function () return setfenv(function()
 	
 	local IS_DEV = getgenv == nil
 	local LOAD_GUARD = "_HAVOC_IS_LOADED"
@@ -6729,7 +10992,7 @@ newModule("store", "ModuleScript", "Havoc.store.store", "Havoc.store", function 
 	
 end, newEnv("Havoc.store.store"))() end)
 
-newModule("theme", "ModuleScript", "Havoc.theme", "Havoc", function () return setfenv(function()
+newModule("theme", "ModuleScript", "Havoc.theme", "Havoc.include", function () return setfenv(function()
 	
 	local UI_COLORS = {
 		Accent = Color3.fromRGB(235, 76, 105),
@@ -8781,7 +13044,7 @@ newModule("Clock", "ModuleScript", "Havoc.views.Clock.Clock", "Havoc.views.Clock
 		local _attributes = {}
 		local _arg0 = px(textWidth.X + CLOCK_PADDING, 0)
 		_attributes.Size = MIN_CLOCK_SIZE + _arg0
-		_attributes.Position = useSpring((function() if isOpen then return UDim2.new(0, 0, 1, 0) else return UDim2.new(0, 0, 1, 48 + 56 + 20) end end)(), {})
+		_attributes.Position = useSpring(if isOpen then UDim2.new(0, 0, 1, 0) else UDim2.new(0, 0, 1, 48 + 56 + 20), {})
 		_attributes.AnchorPoint = Vector2.new(0, 1)
 		_attributes.BackgroundTransparency = 1
 		local _children = {
@@ -8911,7 +13174,7 @@ newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard.Dashboard", "Havoc
 			Roact.createElement("Frame", {
 				Size = scale(1, 1),
 				BackgroundColor3 = hex("#000000"),
-				BackgroundTransparency = useSpring((function() if isOpen then return 0 else return 1 end end)(), {})),
+				BackgroundTransparency = useSpring(if isOpen then 0 else 1, {}),
 				BorderSizePixel = 0,
 			}, {
 				Roact.createElement("UIGradient", {
@@ -8997,11 +13260,11 @@ newModule("Hint", "ModuleScript", "Havoc.views.Hint.Hint", "Havoc.views.Hint", f
 			TextXAlignment = "Right",
 			TextYAlignment = "Bottom",
 			TextColor3 = hex("#FFFFFF"),
-			TextTransparency = useSpring((function() if isHintVisible then return 0.4 else return 1 end end)(), {})),
+			TextTransparency = useSpring(if isHintVisible then 0.4 else 1, {}),
 			Font = "GothamSemibold",
 			TextSize = 18,
 			BackgroundTransparency = 1,
-			Position = useSpring((function() if isHintVisible then return scale(1, 1) else return UDim2.new(1, 0, 1, 48) end end)(), {})),
+			Position = useSpring(if isHintVisible then scale(1, 1) else UDim2.new(1, 0, 1, 48), {}),
 		}, {
 			Roact.createElement("UIScale", {
 				Scale = scaleFactor,
@@ -9065,7 +13328,7 @@ newModule("Navbar", "ModuleScript", "Havoc.views.Navbar.Navbar", "Havoc.views.Na
 		})
 		local _attributes = {
 			Size = NAVBAR_SIZE,
-			Position = useSpring((function() if isOpen then return UDim2.new(0.5, 0, 1, -20) else return UDim2.new(0.5, 0, 1, 100) end end)(), {})),
+			Position = useSpring(if isOpen then UDim2.new(0.5, 0, 1, -20) else UDim2.new(0.5, 0, 1, 100), {}),
 			AnchorPoint = Vector2.new(0.5, 1),
 			BackgroundTransparency = 1,
 		}
@@ -9218,7 +13481,7 @@ newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.vi
 				Roact.createElement("ImageLabel", {
 					Image = PAGE_TO_ICON[page],
 					ImageColor3 = theme.foreground,
-					ImageTransparency = useSpring((function() if isActive then return 0 elseif 0.3 then return 0.6 else return { end end)(), isActive
+					ImageTransparency = useSpring(if isActive then 0 elseif isHovered then 0.3 else 0.6, {
 						frequency = 4,
 						dampingRatio = 1,
 					}),
@@ -9599,17 +13862,17 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 		local textSize = useMemo(function()
 			return TextService:GetTextSize(text, 14, Enum.Font.GothamBold, Vector2.new(1000, ENTRY_HEIGHT))
 		end, { text })
-		local textScrollOffset = useLinear((function() if hovered then return ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X else return 0 end end)(), {
+		local textScrollOffset = useLinear(if hovered then ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X else 0, {
 			velocity = if hovered then 40 else 150,
 		}):map(function(x)
 			return UDim.new(0, math.min(x, 0))
 		end)
-		local background = useSpring((function() if isSelected then return theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else return theme.background end end)(), {}))
-		local dropshadow = useSpring((function() if isSelected then return theme.accent elseif hovered then theme.backgroundHovered or theme.dropshadow:Lerp(theme.accent, 0.5) else return theme.dropshadow end end)(), {}))
-		local foreground = useSpring((function() if isSelected and theme.foregroundAccent then return theme.foregroundAccent else return theme.foreground end end)(), {}))
+		local background = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})
+		local dropshadow = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.dropshadow:Lerp(theme.accent, 0.5) else theme.dropshadow, {})
+		local foreground = useSpring(if isSelected and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
+			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
 			zIndex = index,
 		}
 		local _children = {
@@ -9618,7 +13881,7 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring((function() if isSelected then return theme.glowTransparency elseif hovered then lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) else return theme.dropshadowTransparency end end)(), {})),
+				transparency = useSpring(if isSelected then theme.glowTransparency elseif hovered then lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) else theme.dropshadowTransparency, {}),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -9632,7 +13895,7 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 				TextColor3 = foreground,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Center,
-				TextTransparency = useSpring((function() if isSelected then return 0 elseif hovered then theme.foregroundTransparency / 2 else return theme.foregroundTransparency end end)(), {})),
+				TextTransparency = useSpring(if isSelected then 0 elseif hovered then theme.foregroundTransparency / 2 else theme.foregroundTransparency, {}),
 				BackgroundTransparency = 1,
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
@@ -9838,7 +14101,7 @@ newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivi
 		local _length = #_children
 		local _attributes_1 = {
 			anchor = Vector2.new(0, 1),
-			size = useSpring((function() if #games > 0 then return UDim2.new(1, 0, 0, 344) else return UDim2.new(1, 0, 0, 0) end end)(), {})),
+			size = useSpring(if #games > 0 then UDim2.new(1, 0, 0, 344) else UDim2.new(1, 0, 0, 0), {}),
 			position = scale(0, 1),
 		}
 		local _children_1 = {}
@@ -9899,14 +14162,14 @@ newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.F
 		local isHovered, setHovered = useState(false)
 		local avatar = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. (tostring(friend.VisitorId) .. "&width=48&height=48&format=png")
 		local _attributes = {
-			size = useSpring((function() if isHovered then return px(96, 48) else return px(48, 48) end end)(), FRIEND_SPRING_OPTIONS),
+			size = useSpring(if isHovered then px(96, 48) else px(48, 48), FRIEND_SPRING_OPTIONS),
 		}
 		local _children = {
 			Roact.createElement("ImageLabel", {
 				Image = "rbxassetid://8992244272",
-				ImageColor3 = useSpring((function() if isHovered then return theme.accent else return theme.dropshadow end end)(), FRIEND_SPRING_OPTIONS),
-				ImageTransparency = useSpring((function() if isHovered then return theme.glowTransparency else return theme.dropshadowTransparency end end)(), FRIEND_SPRING_OPTIONS),
-				Size = useSpring((function() if isHovered then return px(88 + 36, 74) else return px(76, 74) end end)(), FRIEND_SPRING_OPTIONS),
+				ImageColor3 = useSpring(if isHovered then theme.accent else theme.dropshadow, FRIEND_SPRING_OPTIONS),
+				ImageTransparency = useSpring(if isHovered then theme.glowTransparency else theme.dropshadowTransparency, FRIEND_SPRING_OPTIONS),
+				Size = useSpring(if isHovered then px(88 + 36, 74) else px(76, 74), FRIEND_SPRING_OPTIONS),
 				Position = px(-14, -10),
 				ScaleType = "Slice",
 				SliceCenter = Rect.new(Vector2.new(42, 42), Vector2.new(42, 42)),
@@ -9914,7 +14177,7 @@ newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.F
 			}),
 			Roact.createElement(Fill, {
 				radius = 24,
-				color = useSpring((function() if isHovered then return theme.accent else return theme.background end end)(), FRIEND_SPRING_OPTIONS),
+				color = useSpring(if isHovered then theme.accent else theme.background, FRIEND_SPRING_OPTIONS),
 				transparency = theme.backgroundTransparency,
 			}),
 		}
@@ -10007,7 +14270,7 @@ newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.Gam
 			Image = gameActivity.thumbnail,
 			ScaleType = "Crop",
 			Size = px(278, 156),
-			Position = useSpring((function() if isVisible then return px(24, index * (GAME_PADDING + 156)) else return px(-278, index * (GAME_PADDING + 156)) end end)(), {})),
+			Position = useSpring(if isVisible then px(24, index * (GAME_PADDING + 156)) else px(-278, index * (GAME_PADDING + 156)), {}),
 			BackgroundTransparency = 1,
 		}
 		local _children = {
@@ -10286,9 +14549,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if showJoinDate then return 0.2 else return 1 end end)(), {})),
+				TextTransparency = useSpring(if showJoinDate then 0.2 else 1, {}),
 				Size = px(85, 48),
-				Position = useSpring((function() if showJoinDate then return px(0, 0) else return px(-20, 0) end end)(), {})),
+				Position = useSpring(if showJoinDate then px(0, 0) else px(-20, 0), {}),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10298,9 +14561,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if showFriendsJoined then return 0.2 else return 1 end end)(), {})),
+				TextTransparency = useSpring(if showFriendsJoined then 0.2 else 1, {}),
 				Size = px(85, 48),
-				Position = useSpring((function() if showFriendsJoined then return px(97, 0) else return px(97 - 20, 0) end end)(), {})),
+				Position = useSpring(if showFriendsJoined then px(97, 0) else px(97 - 20, 0), {}),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10310,9 +14573,9 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 				TextColor3 = theme.foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if showFriendsOnline then return 0.2 else return 1 end end)(), {})),
+				TextTransparency = useSpring(if showFriendsOnline then 0.2 else 1, {}),
 				Size = px(85, 48),
-				Position = useSpring((function() if showFriendsOnline then return px(193, 0) else return px(193 - 20, 0) end end)(), {})),
+				Position = useSpring(if showFriendsOnline then px(193, 0) else px(193 - 20, 0), {}),
 				BackgroundTransparency = 1,
 			}),
 		})
@@ -10438,8 +14701,8 @@ newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "
 		local hovered, setHovered = useState(false)
 		local highlightColors = theme.highlight
 		local accent = highlightColors[props.jobName] or theme.foreground
-		local buttonBackground = useSpring((function() if job.active then return accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else return theme.button.background end end)(), {}))
-		local buttonForeground = useSpring((function() if job.active and theme.button.foregroundAccent then return theme.button.foregroundAccent else return theme.foreground end end)(), {}))
+		local buttonBackground = useSpring(if job.active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})
+		local buttonForeground = useSpring(if job.active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.foreground, {})
 		return Roact.createElement(Canvas, {
 			size = px(278, 49),
 			position = px(0, props.position),
@@ -10503,7 +14766,7 @@ newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "
 					TextColor3 = buttonForeground,
 					TextXAlignment = "Center",
 					TextYAlignment = "Center",
-					TextTransparency = useSpring((function() if job.active then return 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else return theme.button.foregroundTransparency end end)(), {})),
+					TextTransparency = useSpring(if job.active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),
 					Size = scale(1, 1),
 					BackgroundTransparency = 1,
 				}),
@@ -10696,8 +14959,8 @@ newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerA
 			return _condition
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring((function() if active then return theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else return theme.background end end)(), {}))
-		local foreground = useSpring((function() if active and theme.foregroundAccent then return theme.foregroundAccent else return theme.foreground end end)(), {}))
+		local background = useSpring(if active then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})
+		local foreground = useSpring(if active and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})
 		return Roact.createElement(BrightButton, {
 			onActivate = function()
 				return dispatch(setJobActive(action, not active))
@@ -10721,7 +14984,7 @@ newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerA
 			Roact.createElement("ImageLabel", {
 				Image = icon,
 				ImageColor3 = foreground,
-				ImageTransparency = useSpring((function() if active then return 0 elseif hovered then theme.foregroundTransparency - 0.25 else return theme.foregroundTransparency end end)(), {})),
+				ImageTransparency = useSpring(if active then 0 elseif hovered then theme.foregroundTransparency - 0.25 else theme.foregroundTransparency, {}),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Size = px(36, 36),
 				Position = scale(0.5, 0.5),
@@ -10773,12 +15036,12 @@ newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLa
 				Font = "GothamBold",
 				TextSize = 16,
 				TextColor3 = theme.foreground,
-				TextTransparency = useSpring((function() if isVisible then return 0 else return 1 end end)(), {
+				TextTransparency = useSpring(if isVisible then 0 else 1, {
 					frequency = 2,
 				}),
 				TextXAlignment = "Left",
 				TextYAlignment = "Top",
-				Position = useSpring((function() if isVisible then return px(24, offset) else return px(0, offset) end end)(), {})),
+				Position = useSpring(if isVisible then px(24, offset) else px(0, offset), {}),
 				BackgroundTransparency = 1,
 			}),
 			Roact.createElement("TextLabel", {
@@ -10787,10 +15050,10 @@ newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLa
 				Font = "GothamBold",
 				TextSize = 16,
 				TextColor3 = theme.foreground,
-				TextTransparency = useSpring((function() if isVisible then return 0.4 else return 1 end end)(), {})),
+				TextTransparency = useSpring(if isVisible then 0.4 else 1, {}),
 				TextXAlignment = "Left",
 				TextYAlignment = "Top",
-				Position = useSpring((function() if isVisible then return px(24 + valueLength, offset) else return px(0 + valueLength, offset) end end)(), {})),
+				Position = useSpring(if isVisible then px(24 + valueLength, offset) else px(0 + valueLength, offset), {}),
 				BackgroundTransparency = 1,
 			}),
 		})
@@ -10926,7 +15189,7 @@ newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.
 			Font = font,
 			TextColor3 = theme.foreground,
 			TextSize = size,
-			TextTransparency = useSpring((function() if isActive then return transparency else return 1 end end)(), {
+			TextTransparency = useSpring(if isActive then transparency else 1, {
 				frequency = 2,
 			}),
 			TextXAlignment = "Left",
@@ -11437,9 +15700,9 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 			return state.options.config[action]
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring((function() if active then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
-		local dropshadow = useSpring((function() if active then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
-		local foreground = useSpring((function() if active and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
+		local background = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
+		local dropshadow = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
+		local foreground = useSpring(if active and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
 			position = px(0, (PADDING + ENTRY_HEIGHT) * index),
@@ -11451,7 +15714,7 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring((function() if active then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
+				transparency = useSpring(if active then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11465,7 +15728,7 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 				TextColor3 = foreground,
 				TextXAlignment = "Left",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if active then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
+				TextTransparency = useSpring(if active then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
 				BackgroundTransparency = 1,
@@ -11669,12 +15932,12 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				handle:Disconnect()
 			end
 		end, { selected })
-		local background = useSpring((function() if selected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
-		local dropshadow = useSpring((function() if selected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
-		local foreground = useSpring((function() if selected and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
+		local background = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
+		local dropshadow = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
+		local foreground = useSpring(if selected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
+			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
 			zIndex = index,
 		}
 		local _children = {
@@ -11683,7 +15946,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring((function() if selected then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
+				transparency = useSpring(if selected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11697,7 +15960,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				TextColor3 = foreground,
 				TextXAlignment = "Left",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if selected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
+				TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
 				BackgroundTransparency = 1,
@@ -11710,7 +15973,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 				TextColor3 = foreground,
 				TextXAlignment = "Center",
 				TextYAlignment = "Center",
-				TextTransparency = useSpring((function() if selected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
+				TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
 				TextTruncate = "AtEnd",
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, 0, 0, 1),
@@ -11961,12 +16224,12 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 			return state.options.currentTheme == theme.name
 		end)
 		local hovered, setHovered = useState(false)
-		local background = useSpring((function() if isSelected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else return buttonTheme.background end end)(), {}))
-		local dropshadow = useSpring((function() if isSelected then return buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else return buttonTheme.dropshadow end end)(), {}))
-		local foreground = useSpring((function() if isSelected and buttonTheme.foregroundAccent then return buttonTheme.foregroundAccent else return buttonTheme.foreground end end)(), {}))
+		local background = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})
+		local dropshadow = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})
+		local foreground = useSpring(if isSelected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})
 		local _attributes = {
 			size = px(ENTRY_WIDTH, ENTRY_HEIGHT),
-			position = useSpring((function() if isVisible then return px(0, (PADDING + ENTRY_HEIGHT) * index) else return px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index) end end)(), {})),
+			position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),
 			zIndex = index,
 		}
 		local _children = {
@@ -11975,7 +16238,7 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 				color = dropshadow,
 				size = UDim2.new(1, 36, 1, 36),
 				position = px(-18, 5 - 18),
-				transparency = useSpring((function() if isSelected then return buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else return buttonTheme.dropshadowTransparency end end)(), {})),
+				transparency = useSpring(if isSelected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),
 			}),
 			Roact.createElement(Fill, {
 				color = background,
@@ -11989,7 +16252,7 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 				TextColor3 = foreground,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Center,
-				TextTransparency = useSpring((function() if isSelected then return 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else return buttonTheme.foregroundTransparency end end)(), {})),
+				TextTransparency = useSpring(if isSelected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),
 				BackgroundTransparency = 1,
 				Position = px(ENTRY_TEXT_PADDING, 1),
 				Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),
@@ -12467,7 +16730,7 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 		local _length = #_children
 		local _attributes_1 = {
 			anchor = Vector2.new(0.5, 0.5),
-			size = useSpring((function() if isHovered and not isPressed then return UDim2.new(1, 48, 1, 48) else return scale(1, 1) end end)(), {
+			size = useSpring(if isHovered and not isPressed then UDim2.new(1, 48, 1, 48) else scale(1, 1), {
 				frequency = 2,
 			}),
 			position = scale(0.5, 0.5),
@@ -12510,11 +16773,11 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 		_children_1[_length_1 + 2] = Roact.createElement(Fill, {
 			radius = 16,
 			color = hex("#ffffff"),
-			transparency = useSpring((function() if isHovered then return 0 else return 1 end end)(), shineSpringOptions),
+			transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),
 		}, {
 			Roact.createElement("UIGradient", {
 				Transparency = NumberSequence.new(0.75, 1),
-				Offset = useSpring((function() if isHovered then return Vector2.new(0, 0) else return Vector2.new(-1, -1) end end)(), shineSpringOptions),
+				Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),
 				Rotation = 45,
 			}),
 		})
@@ -12522,18 +16785,18 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 			radius = 18,
 			size = 3,
 			color = hex("#ffffff"),
-			transparency = useSpring((function() if isHovered then return 0 else return 1 end end)(), shineSpringOptions),
+			transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),
 		}, {
 			Roact.createElement("UIGradient", {
 				Transparency = NumberSequence.new(0.7, 0.9),
-				Offset = useSpring((function() if isHovered then return Vector2.new(0, 0) else return Vector2.new(-1, -1) end end)(), shineSpringOptions),
+				Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),
 				Rotation = 45,
 			}),
 		})
 		_children_1[_length_1 + 4] = Roact.createElement(Border, {
 			color = hex("#ffffff"),
 			radius = 16,
-			transparency = useSpring((function() if isHovered then return 1 else return 0.8 end end)(), {})),
+			transparency = useSpring(if isHovered then 1 else 0.8, {}),
 		})
 		_children[_length + 1] = Roact.createElement(Canvas, _attributes_1, _children_1)
 		_children[_length + 2] = Roact.createElement("TextButton", {
