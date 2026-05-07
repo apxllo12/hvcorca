@@ -165,3 +165,5 @@ local function hInit()
 		end
 	end
 end
+
+return hInit
