@@ -27,43 +27,40 @@ local BUNDLE_TEMP = "ci/bundle.tmp"
 local function transformInlineIfs(source)
 	local lines = {}
 	for line in (source .. "\n"):gmatch("([^\n]*)\n") do
-		-- Keep transforming until no more inline ifs remain on this line.
 		local changed = true
+
 		while changed do
 			changed = false
-			-- Match inline if preceded by = ( or , (expression context, not statement)
-			-- Captures: prefix (pre), condition (cond), then-value (tval), else-value (eval)
+
 			local new = line:gsub(
-				"([=(,%(][ \t]*)if[ \t](.-)[ \t]then[ \t](.-)[ \t]else[ \t]([^,%)]+),?([^%]*)",
-				function(pre, cond, tval, eval, rest)
-					-- Clean up whitespace
+				"([=(,%(][ \t]*)if[ \t](.-)[ \t]then[ \t](.-)[ \t]else[ \t](.-)(%s*)$",
+				function(pre, cond, tval, eval, tail)
 					cond = cond:match("^%s*(.-)%s*$") or cond
 					tval = tval:match("^%s*(.-)%s*$") or tval
 					eval = eval:match("^%s*(.-)%s*$") or eval
-					
-					-- Add return keywords inside branches (only to then clause - simpler)
-					local thenBody = tval:gsub("^%s*(.-)%s*$", "%1")
-					-- Handle common function calls in then value
-					if not thenBody:match("^return ") then
-						thenBody = "return " .. thenBody
+
+					local function wrapReturn(expr)
+						expr = expr:match("^%s*(.-)%s*$") or expr
+						if not expr:match("^return%s+") then
+							expr = "return " .. expr
+						end
+						return expr
 					end
-					if not eval:match("^return ") then
-						eval = "return " .. eval
-					end
-					
-					local inner = "(function() if " .. cond .. " then " .. thenBody .. " else " .. eval .. " end end)()"
+
+					local inner = "(function() if " .. cond .. " then " .. wrapReturn(tval) .. " else " .. wrapReturn(eval) .. " end end)()"
 					changed = true
-					return pre .. inner .. rest
+					return pre .. inner .. tail
 				end
 			)
+
 			if new ~= line then
 				line = new
-			else
-				changed = false
 			end
 		end
+
 		table.insert(lines, line)
 	end
+
 	return table.concat(lines, "\n")
 end
 
@@ -73,8 +70,10 @@ end
 local function transformInput(source)
 	-- Luau inline if-then-else → Lua IIFEs (must run before luamin sees the source)
 	source = transformInlineIfs(source)
+
 	-- Compound assignment operators
 	source = string.gsub(source, "([%w_]+)%s*([%+%-%*/%%^%.]%.?)=%s*", "%1 = %1 %2")
+
 	-- continue keyword
 	source = string.gsub(source, "(%s+)continue(%s+)", "%1__CONTINUE__()%2")
 	return source
