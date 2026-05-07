@@ -108,7 +108,7 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
             addFolder(fullPath);
             const className = f.path.includes("main.client") ? "LocalScript" : "ModuleScript";
             const indented = f.content.split("\n").map(l => "\t" + l.replace(/\s*--.*$/, "")).join("\n");
-            const line = 'newModule("' + name + '", "' + className + '", "' + fullPath + '", "nil", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + fullPath + "\"))() end)";
+            const line = 'newModule("' + name + '", "' + className + '", "' + fullPath + '", "Havoc", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + fullPath + "\"))() end)";
             body.push(line);
             processed.add(f.path);
         }
