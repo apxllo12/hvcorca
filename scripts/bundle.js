@@ -108,7 +108,7 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
             addFolder(fullPath);
             const className = f.path.includes("main.client") ? "LocalScript" : "ModuleScript";
             const indented = f.content.split("\n").map(l => "\t" + l).join("\n");
-            const line = 'newModule("' + name + '", "' + className + '", "' + fullPath + '", "nil", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + fullPath + "\"))()end)";
+            const line = 'newModule("' + name + '", "' + className + '", "' + fullPath + '", "nil", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + fullPath + "\"))() end)";
             body.push(line);
             processed.add(f.path);
         }
@@ -136,7 +136,7 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
         
         const className = f.path.includes("main.client") ? "LocalScript" : "ModuleScript";
         const indented = f.content.split("\n").map(l => "\t" + l).join("\n");
-        const line = 'newModule("' + name + '", "' + className + '", "' + parentPath + '.' + name + '", "' + parentPath + '", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + parentPath + '.' + name + "\"))()end)";
+        const line = 'newModule("' + name + '", "' + className + '", "' + parentPath + '.' + name + '", "' + parentPath + '", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + parentPath + '.' + name + "\"))() end)";
         body.push(line);
     }
     

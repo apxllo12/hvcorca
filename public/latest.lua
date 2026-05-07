@@ -2217,7 +2217,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 	return Promise
 	
-end, newEnv("Havoc.Promise"))()end)
+end, newEnv("Havoc.Promise"))() end)
 
 newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function () return setfenv(function()
 	local Promise = require(script.Parent.Promise)
@@ -2450,7 +2450,7 @@ newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function ()
 	
 	return TS
 	
-end, newEnv("Havoc.RuntimeLib"))()end)
+end, newEnv("Havoc.RuntimeLib"))() end)
 
 newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -2473,7 +2473,7 @@ newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () return setfen
 		default = default,
 	}
 	
-end, newEnv("Havoc.App"))()end)
+end, newEnv("Havoc.App"))() end)
 
 newInstance("components", "Folder", "Havoc.components", "nil")
 
@@ -2640,7 +2640,7 @@ newModule("Acrylic", "ModuleScript", "Havoc.components.Acrylic.Acrylic", "Havoc.
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.Acrylic.Acrylic"))()end)
+end, newEnv("Havoc.components.Acrylic.Acrylic"))() end)
 
 newModule("acrylic-instance", "ModuleScript", "Havoc.components.Acrylic.acrylic-instance", "Havoc.components.Acrylic", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -2735,7 +2735,7 @@ newModule("acrylic-instance", "ModuleScript", "Havoc.components.Acrylic.acrylic-
 		acrylicInstance = acrylicInstance,
 	}
 	
-end, newEnv("Havoc.components.Acrylic.acrylic-instance"))()end)
+end, newEnv("Havoc.components.Acrylic.acrylic-instance"))() end)
 
 newModule("init", "ModuleScript", "Havoc.components.Acrylic.init", "Havoc.components.Acrylic", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -2744,7 +2744,7 @@ newModule("init", "ModuleScript", "Havoc.components.Acrylic.init", "Havoc.compon
 	exports.default = TS.import(script, script, "Acrylic").default
 	return exports
 	
-end, newEnv("Havoc.components.Acrylic.init"))()end)
+end, newEnv("Havoc.components.Acrylic.init"))() end)
 
 newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -2825,7 +2825,7 @@ newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havo
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.ActionButton"))()end)
+end, newEnv("Havoc.components.ActionButton"))() end)
 
 newModule("Border", "ModuleScript", "Havoc.components.Border", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -2899,7 +2899,7 @@ newModule("Border", "ModuleScript", "Havoc.components.Border", "Havoc.components
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.Border"))()end)
+end, newEnv("Havoc.components.Border"))() end)
 
 newModule("BrightButton", "ModuleScript", "Havoc.components.BrightButton", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3031,7 +3031,7 @@ newModule("BrightButton", "ModuleScript", "Havoc.components.BrightButton", "Havo
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.BrightButton"))()end)
+end, newEnv("Havoc.components.BrightButton"))() end)
 
 newModule("BrightSlider", "ModuleScript", "Havoc.components.BrightSlider", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3219,7 +3219,7 @@ newModule("BrightSlider", "ModuleScript", "Havoc.components.BrightSlider", "Havo
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.BrightSlider"))()end)
+end, newEnv("Havoc.components.BrightSlider"))() end)
 
 newModule("Canvas", "ModuleScript", "Havoc.components.Canvas", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3291,7 +3291,7 @@ newModule("Canvas", "ModuleScript", "Havoc.components.Canvas", "Havoc.components
 	end
 	return Canvas
 	
-end, newEnv("Havoc.components.Canvas"))()end)
+end, newEnv("Havoc.components.Canvas"))() end)
 
 newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3378,7 +3378,7 @@ newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", f
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.Card"))()end)
+end, newEnv("Havoc.components.Card"))() end)
 
 newModule("Fill", "ModuleScript", "Havoc.components.Fill", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3447,7 +3447,7 @@ newModule("Fill", "ModuleScript", "Havoc.components.Fill", "Havoc.components", f
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.Fill"))()end)
+end, newEnv("Havoc.components.Fill"))() end)
 
 newModule("Glow", "ModuleScript", "Havoc.components.Glow", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3577,7 +3577,7 @@ newModule("Glow", "ModuleScript", "Havoc.components.Glow", "Havoc.components", f
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.Glow"))()end)
+end, newEnv("Havoc.components.Glow"))() end)
 
 newModule("ParallaxImage", "ModuleScript", "Havoc.components.ParallaxImage", "Havoc.components", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3621,7 +3621,7 @@ newModule("ParallaxImage", "ModuleScript", "Havoc.components.ParallaxImage", "Ha
 		default = default,
 	}
 	
-end, newEnv("Havoc.components.ParallaxImage"))()end)
+end, newEnv("Havoc.components.ParallaxImage"))() end)
 
 newModule("constants", "ModuleScript", "Havoc.constants", "Havoc", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3638,7 +3638,7 @@ newModule("constants", "ModuleScript", "Havoc.constants", "Havoc", function () r
 		VERSION_TAG = VERSION_TAG,
 	}
 	
-end, newEnv("Havoc.constants"))()end)
+end, newEnv("Havoc.constants"))() end)
 
 newInstance("context", "Folder", "Havoc.context", "nil")
 
@@ -3651,7 +3651,7 @@ newModule("scale-context", "ModuleScript", "Havoc.context.scale-context", "Havoc
 		ScaleContext = ScaleContext,
 	}
 	
-end, newEnv("Havoc.context.scale-context"))()end)
+end, newEnv("Havoc.context.scale-context"))() end)
 
 newInstance("hooks", "Folder", "Havoc.hooks", "nil")
 
@@ -3685,7 +3685,7 @@ newModule("get-binding", "ModuleScript", "Havoc.hooks.common.flipper-hooks.get-b
 		getBinding = getBinding,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.get-binding"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.get-binding"))() end)
 
 newModule("init", "ModuleScript", "Havoc.hooks.common.flipper-hooks.init", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3699,7 +3699,7 @@ newModule("init", "ModuleScript", "Havoc.hooks.common.flipper-hooks.init", "Havo
 	exports.useSpring = TS.import(script, script, "use-spring").useSpring
 	return exports
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.init"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.init"))() end)
 
 newModule("use-goal", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-goal", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3715,7 +3715,7 @@ newModule("use-goal", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-goal
 		useGoal = useGoal,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.use-goal"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.use-goal"))() end)
 
 newModule("use-instant", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-instant", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3729,7 +3729,7 @@ newModule("use-instant", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-i
 		useInstant = useInstant,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.use-instant"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.use-instant"))() end)
 
 newModule("use-linear", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-linear", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3743,7 +3743,7 @@ newModule("use-linear", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-li
 		useLinear = useLinear,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.use-linear"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.use-linear"))() end)
 
 newModule("use-motor", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-motor", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3768,7 +3768,7 @@ newModule("use-motor", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-mot
 		useMotor = useMotor,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.use-motor"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.use-motor"))() end)
 
 newModule("use-spring", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-spring", "Havoc.hooks.common.flipper-hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3782,7 +3782,7 @@ newModule("use-spring", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-sp
 		useSpring = useSpring,
 	}
 	
-end, newEnv("Havoc.hooks.common.flipper-hooks.use-spring"))()end)
+end, newEnv("Havoc.hooks.common.flipper-hooks.use-spring"))() end)
 
 newModule("rodux-hooks", "ModuleScript", "Havoc.hooks.common.rodux-hooks", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3804,7 +3804,7 @@ newModule("rodux-hooks", "ModuleScript", "Havoc.hooks.common.rodux-hooks", "Havo
 		useAppStore = useAppStore,
 	}
 	
-end, newEnv("Havoc.hooks.common.rodux-hooks"))()end)
+end, newEnv("Havoc.hooks.common.rodux-hooks"))() end)
 
 newModule("use-delayed-update", "ModuleScript", "Havoc.hooks.common.use-delayed-update", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3862,7 +3862,7 @@ newModule("use-delayed-update", "ModuleScript", "Havoc.hooks.common.use-delayed-
 		useDelayedUpdate = useDelayedUpdate,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-delayed-update"))()end)
+end, newEnv("Havoc.hooks.common.use-delayed-update"))() end)
 
 newModule("use-did-mount", "ModuleScript", "Havoc.hooks.common.use-did-mount", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3891,7 +3891,7 @@ newModule("use-did-mount", "ModuleScript", "Havoc.hooks.common.use-did-mount", "
 		useIsMount = useIsMount,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-did-mount"))()end)
+end, newEnv("Havoc.hooks.common.use-did-mount"))() end)
 
 newModule("use-forced-update", "ModuleScript", "Havoc.hooks.common.use-forced-update", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3911,7 +3911,7 @@ newModule("use-forced-update", "ModuleScript", "Havoc.hooks.common.use-forced-up
 		useForcedUpdate = useForcedUpdate,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-forced-update"))()end)
+end, newEnv("Havoc.hooks.common.use-forced-update"))() end)
 
 newModule("use-interval", "ModuleScript", "Havoc.hooks.common.use-interval", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3942,7 +3942,7 @@ newModule("use-interval", "ModuleScript", "Havoc.hooks.common.use-interval", "Ha
 		useInterval = useInterval,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-interval"))()end)
+end, newEnv("Havoc.hooks.common.use-interval"))() end)
 
 newModule("use-mouse-location", "ModuleScript", "Havoc.hooks.common.use-mouse-location", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -3973,7 +3973,7 @@ newModule("use-mouse-location", "ModuleScript", "Havoc.hooks.common.use-mouse-lo
 		useMouseLocation = useMouseLocation,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-mouse-location"))()end)
+end, newEnv("Havoc.hooks.common.use-mouse-location"))() end)
 
 newModule("use-promise", "ModuleScript", "Havoc.hooks.common.use-promise", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4060,7 +4060,7 @@ newModule("use-promise", "ModuleScript", "Havoc.hooks.common.use-promise", "Havo
 		usePromise = usePromise,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-promise"))()end)
+end, newEnv("Havoc.hooks.common.use-promise"))() end)
 
 newModule("use-set-state", "ModuleScript", "Havoc.hooks.common.use-set-state", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4088,7 +4088,7 @@ newModule("use-set-state", "ModuleScript", "Havoc.hooks.common.use-set-state", "
 		default = useSetState,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-set-state"))()end)
+end, newEnv("Havoc.hooks.common.use-set-state"))() end)
 
 newModule("use-spring", "ModuleScript", "Havoc.hooks.common.use-spring", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4154,7 +4154,7 @@ newModule("use-spring", "ModuleScript", "Havoc.hooks.common.use-spring", "Havoc.
 		useSpring = useSpring,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-spring"))()end)
+end, newEnv("Havoc.hooks.common.use-spring"))() end)
 
 newModule("use-viewport-size", "ModuleScript", "Havoc.hooks.common.use-viewport-size", "Havoc.hooks.common", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4200,7 +4200,7 @@ newModule("use-viewport-size", "ModuleScript", "Havoc.hooks.common.use-viewport-
 		useViewportSize = useViewportSize,
 	}
 	
-end, newEnv("Havoc.hooks.common.use-viewport-size"))()end)
+end, newEnv("Havoc.hooks.common.use-viewport-size"))() end)
 
 newModule("use-current-page", "ModuleScript", "Havoc.hooks.use-current-page", "Havoc.hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4221,7 +4221,7 @@ newModule("use-current-page", "ModuleScript", "Havoc.hooks.use-current-page", "H
 		useIsPageOpen = useIsPageOpen,
 	}
 	
-end, newEnv("Havoc.hooks.use-current-page"))()end)
+end, newEnv("Havoc.hooks.use-current-page"))() end)
 
 newModule("use-friends", "ModuleScript", "Havoc.hooks.use-friends", "Havoc.hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4308,7 +4308,7 @@ newModule("use-friends", "ModuleScript", "Havoc.hooks.use-friends", "Havoc.hooks
 		useFriendActivity = useFriendActivity,
 	}
 	
-end, newEnv("Havoc.hooks.use-friends"))()end)
+end, newEnv("Havoc.hooks.use-friends"))() end)
 
 newModule("use-parallax-offset", "ModuleScript", "Havoc.hooks.use-parallax-offset", "Havoc.hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4347,7 +4347,7 @@ newModule("use-parallax-offset", "ModuleScript", "Havoc.hooks.use-parallax-offse
 		useParallaxOffset = useParallaxOffset,
 	}
 	
-end, newEnv("Havoc.hooks.use-parallax-offset"))()end)
+end, newEnv("Havoc.hooks.use-parallax-offset"))() end)
 
 newModule("use-scale", "ModuleScript", "Havoc.hooks.use-scale", "Havoc.hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4363,7 +4363,7 @@ newModule("use-scale", "ModuleScript", "Havoc.hooks.use-scale", "Havoc.hooks", f
 		useScale = useScale,
 	}
 	
-end, newEnv("Havoc.hooks.use-scale"))()end)
+end, newEnv("Havoc.hooks.use-scale"))() end)
 
 newModule("use-theme", "ModuleScript", "Havoc.hooks.use-theme", "Havoc.hooks", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4397,7 +4397,7 @@ newModule("use-theme", "ModuleScript", "Havoc.hooks.use-theme", "Havoc.hooks", f
 		useTheme = useTheme,
 	}
 	
-end, newEnv("Havoc.hooks.use-theme"))()end)
+end, newEnv("Havoc.hooks.use-theme"))() end)
 
 newInstance("jobs", "Folder", "Havoc.jobs", "nil")
 
@@ -4459,7 +4459,7 @@ newModule("acrylic", "ModuleScript", "Havoc.jobs.acrylic", "Havoc.jobs", functio
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.acrylic"))()end)
+end, newEnv("Havoc.jobs.acrylic"))() end)
 
 newInstance("character", "Folder", "Havoc.jobs.character", "Havoc.jobs")
 
@@ -4626,7 +4626,7 @@ newModule("flight", "ModuleScript", "Havoc.jobs.character.flight", "Havoc.jobs.c
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.character.flight"))()end)
+end, newEnv("Havoc.jobs.character.flight"))() end)
 
 newModule("ghost", "ModuleScript", "Havoc.jobs.character.ghost", "Havoc.jobs.character", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4799,7 +4799,7 @@ newModule("ghost", "ModuleScript", "Havoc.jobs.character.ghost", "Havoc.jobs.cha
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.character.ghost"))()end)
+end, newEnv("Havoc.jobs.character.ghost"))() end)
 
 newModule("godmode", "ModuleScript", "Havoc.jobs.character.godmode", "Havoc.jobs.character", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4880,7 +4880,7 @@ newModule("godmode", "ModuleScript", "Havoc.jobs.character.godmode", "Havoc.jobs
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.character.godmode"))()end)
+end, newEnv("Havoc.jobs.character.godmode"))() end)
 
 newModule("humanoid", "ModuleScript", "Havoc.jobs.character.humanoid", "Havoc.jobs.character", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -4978,7 +4978,7 @@ newModule("humanoid", "ModuleScript", "Havoc.jobs.character.humanoid", "Havoc.jo
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.character.humanoid"))()end)
+end, newEnv("Havoc.jobs.character.humanoid"))() end)
 
 newModule("refresh", "ModuleScript", "Havoc.jobs.character.refresh", "Havoc.jobs.character", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5049,7 +5049,7 @@ newModule("refresh", "ModuleScript", "Havoc.jobs.character.refresh", "Havoc.jobs
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.character.refresh"))()end)
+end, newEnv("Havoc.jobs.character.refresh"))() end)
 
 newModule("freecam", "ModuleScript", "Havoc.jobs.freecam", "Havoc.jobs", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5072,7 +5072,7 @@ newModule("freecam", "ModuleScript", "Havoc.jobs.freecam", "Havoc.jobs", functio
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.freecam"))()end)
+end, newEnv("Havoc.jobs.freecam"))() end)
 
 newInstance("helpers", "Folder", "Havoc.jobs.helpers", "Havoc.jobs")
 
@@ -5537,7 +5537,7 @@ newModule("init", "ModuleScript", "Havoc.jobs.helpers.freecam.init", "Havoc.jobs
 		DisableFreecam = DisableFreecam,
 	}
 	
-end, newEnv("Havoc.jobs.helpers.freecam.init"))()end)
+end, newEnv("Havoc.jobs.helpers.freecam.init"))() end)
 
 newModule("get-selected-player", "ModuleScript", "Havoc.jobs.helpers.get-selected-player", "Havoc.jobs.helpers", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5568,7 +5568,7 @@ newModule("get-selected-player", "ModuleScript", "Havoc.jobs.helpers.get-selecte
 		getSelectedPlayer = getSelectedPlayer,
 	}
 	
-end, newEnv("Havoc.jobs.helpers.get-selected-player"))()end)
+end, newEnv("Havoc.jobs.helpers.get-selected-player"))() end)
 
 newModule("job-store", "ModuleScript", "Havoc.jobs.helpers.job-store", "Havoc.jobs.helpers", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5624,7 +5624,7 @@ newModule("job-store", "ModuleScript", "Havoc.jobs.helpers.job-store", "Havoc.jo
 		onJobChange = onJobChange,
 	}
 	
-end, newEnv("Havoc.jobs.helpers.job-store"))()end)
+end, newEnv("Havoc.jobs.helpers.job-store"))() end)
 
 newModule("init", "ModuleScript", "Havoc.jobs.init", "Havoc.jobs", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5645,7 +5645,7 @@ newModule("init", "ModuleScript", "Havoc.jobs.init", "Havoc.jobs", function () r
 	TS.import(script, script, "players", "teleport")
 	return exports
 	
-end, newEnv("Havoc.jobs.init"))()end)
+end, newEnv("Havoc.jobs.init"))() end)
 
 newInstance("players", "Folder", "Havoc.jobs.players", "Havoc.jobs")
 
@@ -5717,7 +5717,7 @@ newModule("hide", "ModuleScript", "Havoc.jobs.players.hide", "Havoc.jobs.players
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.players.hide"))()end)
+end, newEnv("Havoc.jobs.players.hide"))() end)
 
 newModule("kill", "ModuleScript", "Havoc.jobs.players.kill", "Havoc.jobs.players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5872,7 +5872,7 @@ newModule("kill", "ModuleScript", "Havoc.jobs.players.kill", "Havoc.jobs.players
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.players.kill"))()end)
+end, newEnv("Havoc.jobs.players.kill"))() end)
 
 newModule("spectate", "ModuleScript", "Havoc.jobs.players.spectate", "Havoc.jobs.players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5935,7 +5935,7 @@ newModule("spectate", "ModuleScript", "Havoc.jobs.players.spectate", "Havoc.jobs
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.players.spectate"))()end)
+end, newEnv("Havoc.jobs.players.spectate"))() end)
 
 newModule("teleport", "ModuleScript", "Havoc.jobs.players.teleport", "Havoc.jobs.players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -5992,7 +5992,7 @@ newModule("teleport", "ModuleScript", "Havoc.jobs.players.teleport", "Havoc.jobs
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.players.teleport"))()end)
+end, newEnv("Havoc.jobs.players.teleport"))() end)
 
 newModule("server", "ModuleScript", "Havoc.jobs.server", "Havoc.jobs", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -6101,7 +6101,7 @@ newModule("server", "ModuleScript", "Havoc.jobs.server", "Havoc.jobs", function 
 	end)
 	return nil
 	
-end, newEnv("Havoc.jobs.server"))()end)
+end, newEnv("Havoc.jobs.server"))() end)
 
 newInstance("main", "Folder", "Havoc.main", "nil")
 
@@ -6195,7 +6195,7 @@ newModule("client", "LocalScript", "Havoc.main.client", "Havoc.main", function (
 		warn("[Havoc] Failed to load: " .. tostring(err))
 	end)
 	
-end, newEnv("Havoc.main.client"))()end)
+end, newEnv("Havoc.main.client"))() end)
 
 newInstance("store", "Folder", "Havoc.store", "nil")
 
@@ -6240,7 +6240,7 @@ newModule("action", "ModuleScript", "Havoc.store.actions.dashboard.action", "Hav
 		playerDeselected = playerDeselected,
 	}
 	
-end, newEnv("Havoc.store.actions.dashboard.action"))()end)
+end, newEnv("Havoc.store.actions.dashboard.action"))() end)
 
 newInstance("jobs", "Folder", "Havoc.store.actions.jobs", "Havoc.store.actions")
 
@@ -6273,7 +6273,7 @@ newModule("action", "ModuleScript", "Havoc.store.actions.jobs.action", "Havoc.st
 		setJobSlider = setJobSlider,
 	}
 	
-end, newEnv("Havoc.store.actions.jobs.action"))()end)
+end, newEnv("Havoc.store.actions.jobs.action"))() end)
 
 newInstance("options", "Folder", "Havoc.store.actions.options", "Havoc.store.actions")
 
@@ -6310,7 +6310,7 @@ newModule("action", "ModuleScript", "Havoc.store.actions.options.action", "Havoc
 		setTheme = setTheme,
 	}
 	
-end, newEnv("Havoc.store.actions.options.action"))()end)
+end, newEnv("Havoc.store.actions.options.action"))() end)
 
 newInstance("models", "Folder", "Havoc.store.models", "Havoc.store")
 
@@ -6355,21 +6355,21 @@ newModule("model", "ModuleScript", "Havoc.store.models.dashboard.model", "Havoc.
 		PAGE_TO_ICON = PAGE_TO_ICON,
 	}
 	
-end, newEnv("Havoc.store.models.dashboard.model"))()end)
+end, newEnv("Havoc.store.models.dashboard.model"))() end)
 
 newInstance("jobs", "Folder", "Havoc.store.models.jobs", "Havoc.store.models")
 
 newModule("model", "ModuleScript", "Havoc.store.models.jobs.model", "Havoc.store.models.jobs", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
 	
-end, newEnv("Havoc.store.models.jobs.model"))()end)
+end, newEnv("Havoc.store.models.jobs.model"))() end)
 
 newInstance("options", "Folder", "Havoc.store.models.options", "Havoc.store.models")
 
 newModule("model", "ModuleScript", "Havoc.store.models.options.model", "Havoc.store.models.options", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
 	
-end, newEnv("Havoc.store.models.options.model"))()end)
+end, newEnv("Havoc.store.models.options.model"))() end)
 
 newModule("persistent-state", "ModuleScript", "Havoc.store.persistent-state", "Havoc.store", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -6434,7 +6434,7 @@ newModule("persistent-state", "ModuleScript", "Havoc.store.persistent-state", "H
 		persistentState = persistentState,
 	}
 	
-end, newEnv("Havoc.store.persistent-state"))()end)
+end, newEnv("Havoc.store.persistent-state"))() end)
 
 newInstance("reducers", "Folder", "Havoc.store.reducers", "Havoc.store")
 
@@ -6519,7 +6519,7 @@ newModule("reducer", "ModuleScript", "Havoc.store.reducers.dashboard.reducer", "
 		dashboardReducer = dashboardReducer,
 	}
 	
-end, newEnv("Havoc.store.reducers.dashboard.reducer"))()end)
+end, newEnv("Havoc.store.reducers.dashboard.reducer"))() end)
 
 newInstance("jobs", "Folder", "Havoc.store.reducers.jobs", "Havoc.store.reducers")
 
@@ -6630,7 +6630,7 @@ newModule("reducer", "ModuleScript", "Havoc.store.reducers.jobs.reducer", "Havoc
 		jobsReducer = jobsReducer,
 	}
 	
-end, newEnv("Havoc.store.reducers.jobs.reducer"))()end)
+end, newEnv("Havoc.store.reducers.jobs.reducer"))() end)
 
 newInstance("options", "Folder", "Havoc.store.reducers.options", "Havoc.store.reducers")
 
@@ -6706,7 +6706,7 @@ newModule("reducer", "ModuleScript", "Havoc.store.reducers.options.reducer", "Ha
 		optionsReducer = optionsReducer,
 	}
 	
-end, newEnv("Havoc.store.reducers.options.reducer"))()end)
+end, newEnv("Havoc.store.reducers.options.reducer"))() end)
 
 newModule("store", "ModuleScript", "Havoc.store.store", "Havoc.store", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -6727,7 +6727,7 @@ newModule("store", "ModuleScript", "Havoc.store.store", "Havoc.store", function 
 		configureStore = configureStore,
 	}
 	
-end, newEnv("Havoc.store.store"))()end)
+end, newEnv("Havoc.store.store"))() end)
 
 newModule("theme", "ModuleScript", "Havoc.theme", "Havoc", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -6761,7 +6761,7 @@ newModule("theme", "ModuleScript", "Havoc.theme", "Havoc", function () return se
 		UI_LAYOUT = UI_LAYOUT,
 	}
 	
-end, newEnv("Havoc.theme"))()end)
+end, newEnv("Havoc.theme"))() end)
 
 newInstance("themes", "Folder", "Havoc.themes", "nil")
 
@@ -7039,7 +7039,7 @@ newModule("crimson", "ModuleScript", "Havoc.themes.crimson", "Havoc.themes", fun
 		crimson = crimson,
 	}
 	
-end, newEnv("Havoc.themes.crimson"))()end)
+end, newEnv("Havoc.themes.crimson"))() end)
 
 newModule("frosted-glass", "ModuleScript", "Havoc.themes.frosted-glass", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -7330,7 +7330,7 @@ newModule("frosted-glass", "ModuleScript", "Havoc.themes.frosted-glass", "Havoc.
 		frostedGlass = frostedGlass,
 	}
 	
-end, newEnv("Havoc.themes.frosted-glass"))()end)
+end, newEnv("Havoc.themes.frosted-glass"))() end)
 
 newModule("high-contrast", "ModuleScript", "Havoc.themes.high-contrast", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -7572,7 +7572,7 @@ newModule("high-contrast", "ModuleScript", "Havoc.themes.high-contrast", "Havoc.
 		highContrast = highContrast,
 	}
 	
-end, newEnv("Havoc.themes.high-contrast"))()end)
+end, newEnv("Havoc.themes.high-contrast"))() end)
 
 newModule("init", "ModuleScript", "Havoc.themes.init", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -7618,7 +7618,7 @@ newModule("init", "ModuleScript", "Havoc.themes.init", "Havoc.themes", function 
 		darkTheme = darkTheme,
 	}
 	
-end, newEnv("Havoc.themes.init"))()end)
+end, newEnv("Havoc.themes.init"))() end)
 
 newModule("light-theme", "ModuleScript", "Havoc.themes.light-theme", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -7853,7 +7853,7 @@ newModule("light-theme", "ModuleScript", "Havoc.themes.light-theme", "Havoc.them
 		lightTheme = lightTheme,
 	}
 	
-end, newEnv("Havoc.themes.light-theme"))()end)
+end, newEnv("Havoc.themes.light-theme"))() end)
 
 newModule("obsidian", "ModuleScript", "Havoc.themes.obsidian", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8175,7 +8175,7 @@ newModule("obsidian", "ModuleScript", "Havoc.themes.obsidian", "Havoc.themes", f
 		obsidian = obsidian,
 	}
 	
-end, newEnv("Havoc.themes.obsidian"))()end)
+end, newEnv("Havoc.themes.obsidian"))() end)
 
 newModule("sorbet", "ModuleScript", "Havoc.themes.sorbet", "Havoc.themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8428,14 +8428,14 @@ newModule("sorbet", "ModuleScript", "Havoc.themes.sorbet", "Havoc.themes", funct
 		darkTheme = darkTheme,
 	}
 	
-end, newEnv("Havoc.themes.sorbet"))()end)
+end, newEnv("Havoc.themes.sorbet"))() end)
 
 newInstance("theme", "Folder", "Havoc.themes.theme", "Havoc.themes")
 
 newModule("interface", "ModuleScript", "Havoc.themes.theme.interface", "Havoc.themes.theme", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
 	
-end, newEnv("Havoc.themes.theme.interface"))()end)
+end, newEnv("Havoc.themes.theme.interface"))() end)
 
 newInstance("utils", "Folder", "Havoc.utils", "nil")
 
@@ -8458,7 +8458,7 @@ newModule("array-util", "ModuleScript", "Havoc.utils.array-util", "Havoc.utils",
 		arrayToMap = arrayToMap,
 	}
 	
-end, newEnv("Havoc.utils.array-util"))()end)
+end, newEnv("Havoc.utils.array-util"))() end)
 
 newModule("binding-util", "ModuleScript", "Havoc.utils.binding-util", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8479,7 +8479,7 @@ newModule("binding-util", "ModuleScript", "Havoc.utils.binding-util", "Havoc.uti
 		asBinding = asBinding,
 	}
 	
-end, newEnv("Havoc.utils.binding-util"))()end)
+end, newEnv("Havoc.utils.binding-util"))() end)
 
 newModule("color3", "ModuleScript", "Havoc.utils.color3", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8531,7 +8531,7 @@ newModule("color3", "ModuleScript", "Havoc.utils.color3", "Havoc.utils", functio
 		hsl = hsl,
 	}
 	
-end, newEnv("Havoc.utils.color3"))()end)
+end, newEnv("Havoc.utils.color3"))() end)
 
 newModule("debug", "ModuleScript", "Havoc.utils.debug", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8561,7 +8561,7 @@ newModule("debug", "ModuleScript", "Havoc.utils.debug", "Havoc.utils", function 
 		endTimer = endTimer,
 	}
 	
-end, newEnv("Havoc.utils.debug"))()end)
+end, newEnv("Havoc.utils.debug"))() end)
 
 newModule("http", "ModuleScript", "Havoc.utils.http", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8606,7 +8606,7 @@ newModule("http", "ModuleScript", "Havoc.utils.http", "Havoc.utils", function ()
 		post = post,
 	}
 	
-end, newEnv("Havoc.utils.http"))()end)
+end, newEnv("Havoc.utils.http"))() end)
 
 newModule("number-util", "ModuleScript", "Havoc.utils.number-util", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8621,7 +8621,7 @@ newModule("number-util", "ModuleScript", "Havoc.utils.number-util", "Havoc.utils
 		lerp = lerp,
 	}
 	
-end, newEnv("Havoc.utils.number-util"))()end)
+end, newEnv("Havoc.utils.number-util"))() end)
 
 newModule("timeout", "ModuleScript", "Havoc.utils.timeout", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8708,7 +8708,7 @@ newModule("timeout", "ModuleScript", "Havoc.utils.timeout", "Havoc.utils", funct
 		Interval = Interval,
 	}
 	
-end, newEnv("Havoc.utils.timeout"))()end)
+end, newEnv("Havoc.utils.timeout"))() end)
 
 newModule("udim2", "ModuleScript", "Havoc.utils.udim2", "Havoc.utils", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8730,7 +8730,7 @@ newModule("udim2", "ModuleScript", "Havoc.utils.udim2", "Havoc.utils", function 
 		applyUDim2 = applyUDim2,
 	}
 	
-end, newEnv("Havoc.utils.udim2"))()end)
+end, newEnv("Havoc.utils.udim2"))() end)
 
 newInstance("views", "Folder", "Havoc.views", "nil")
 
@@ -8841,7 +8841,7 @@ newModule("Clock", "ModuleScript", "Havoc.views.Clock.Clock", "Havoc.views.Clock
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Clock.Clock"))()end)
+end, newEnv("Havoc.views.Clock.Clock"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Clock.init", "Havoc.views.Clock", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8850,7 +8850,7 @@ newModule("init", "ModuleScript", "Havoc.views.Clock.init", "Havoc.views.Clock",
 	exports.default = TS.import(script, script, "Clock").default
 	return exports
 	
-end, newEnv("Havoc.views.Clock.init"))()end)
+end, newEnv("Havoc.views.Clock.init"))() end)
 
 newInstance("Dashboard", "Folder", "Havoc.views.Dashboard", "Havoc.views")
 
@@ -8944,7 +8944,7 @@ newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard.Dashboard", "Havoc
 	end
 	return Dashboard
 	
-end, newEnv("Havoc.views.Dashboard.Dashboard"))()end)
+end, newEnv("Havoc.views.Dashboard.Dashboard"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Dashboard.init", "Havoc.views.Dashboard", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -8953,7 +8953,7 @@ newModule("init", "ModuleScript", "Havoc.views.Dashboard.init", "Havoc.views.Das
 	exports.default = TS.import(script, script, "Dashboard").default
 	return exports
 	
-end, newEnv("Havoc.views.Dashboard.init"))()end)
+end, newEnv("Havoc.views.Dashboard.init"))() end)
 
 newInstance("Hint", "Folder", "Havoc.views.Hint", "Havoc.views")
 
@@ -9013,7 +9013,7 @@ newModule("Hint", "ModuleScript", "Havoc.views.Hint.Hint", "Havoc.views.Hint", f
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Hint.Hint"))()end)
+end, newEnv("Havoc.views.Hint.Hint"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Hint.init", "Havoc.views.Hint", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9022,7 +9022,7 @@ newModule("init", "ModuleScript", "Havoc.views.Hint.init", "Havoc.views.Hint", f
 	exports.default = TS.import(script, script, "Hint").default
 	return exports
 	
-end, newEnv("Havoc.views.Hint.init"))()end)
+end, newEnv("Havoc.views.Hint.init"))() end)
 
 newInstance("Navbar", "Folder", "Havoc.views.Navbar", "Havoc.views")
 
@@ -9172,7 +9172,7 @@ newModule("Navbar", "ModuleScript", "Havoc.views.Navbar.Navbar", "Havoc.views.Na
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Navbar.Navbar"))()end)
+end, newEnv("Havoc.views.Navbar.Navbar"))() end)
 
 newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.views.Navbar", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9235,7 +9235,7 @@ newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.vi
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Navbar.NavbarTab"))()end)
+end, newEnv("Havoc.views.Navbar.NavbarTab"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Navbar.init", "Havoc.views.Navbar", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9244,7 +9244,7 @@ newModule("init", "ModuleScript", "Havoc.views.Navbar.init", "Havoc.views.Navbar
 	exports.default = TS.import(script, script, "Navbar").default
 	return exports
 	
-end, newEnv("Havoc.views.Navbar.init"))()end)
+end, newEnv("Havoc.views.Navbar.init"))() end)
 
 newInstance("Pages", "Folder", "Havoc.views.Pages", "Havoc.views")
 
@@ -9275,7 +9275,7 @@ newModule("Apps", "ModuleScript", "Havoc.views.Pages.Apps.Apps", "Havoc.views.Pa
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Apps"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Apps"))() end)
 
 newInstance("Players", "Folder", "Havoc.views.Pages.Apps.Players", "Havoc.views.Pages.Apps")
 
@@ -9332,7 +9332,7 @@ newModule("Actions", "ModuleScript", "Havoc.views.Pages.Apps.Players.Actions", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.Actions"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.Actions"))() end)
 
 newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Apps.Players.Avatar", "Havoc.views.Pages.Apps.Players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9382,7 +9382,7 @@ newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Apps.Players.Avatar", "Ha
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.Avatar"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.Avatar"))() end)
 
 newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players.Players", "Havoc.views.Pages.Apps.Players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9416,7 +9416,7 @@ newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players.Players", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.Players"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.Players"))() end)
 
 newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection", "Havoc.views.Pages.Apps.Players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9698,7 +9698,7 @@ newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.Selection"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.Selection"))() end)
 
 newModule("Username", "ModuleScript", "Havoc.views.Pages.Apps.Players.Username", "Havoc.views.Pages.Apps.Players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9749,7 +9749,7 @@ newModule("Username", "ModuleScript", "Havoc.views.Pages.Apps.Players.Username",
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.Username"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.Username"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Apps.Players.init", "Havoc.views.Pages.Apps.Players", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9758,7 +9758,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Apps.Players.init", "Havoc.
 	exports.default = TS.import(script, script, "Players").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Apps.Players.init"))()end)
+end, newEnv("Havoc.views.Pages.Apps.Players.init"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Apps.init", "Havoc.views.Pages.Apps", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9767,7 +9767,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Apps.init", "Havoc.views.Pa
 	exports.default = TS.import(script, script, "Apps").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Apps.init"))()end)
+end, newEnv("Havoc.views.Pages.Apps.init"))() end)
 
 newInstance("Home", "Folder", "Havoc.views.Pages.Home", "Havoc.views.Pages")
 
@@ -9871,7 +9871,7 @@ newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivi
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendActivity"))()end)
+end, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendActivity"))() end)
 
 newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.FriendItem", "Havoc.views.Pages.Home.FriendActivity", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -9977,7 +9977,7 @@ newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.F
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendItem"))()end)
+end, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendItem"))() end)
 
 newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.GameItem", "Havoc.views.Pages.Home.FriendActivity", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10062,7 +10062,7 @@ newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.Gam
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.FriendActivity.GameItem"))()end)
+end, newEnv("Havoc.views.Pages.Home.FriendActivity.GameItem"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.init", "Havoc.views.Pages.Home.FriendActivity", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10071,7 +10071,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.init", 
 	exports.default = TS.import(script, script, "FriendActivity").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Home.FriendActivity.init"))()end)
+end, newEnv("Havoc.views.Pages.Home.FriendActivity.init"))() end)
 
 newModule("Home", "ModuleScript", "Havoc.views.Pages.Home.Home", "Havoc.views.Pages.Home", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10101,7 +10101,7 @@ newModule("Home", "ModuleScript", "Havoc.views.Pages.Home.Home", "Havoc.views.Pa
 	end
 	return Home
 	
-end, newEnv("Havoc.views.Pages.Home.Home"))()end)
+end, newEnv("Havoc.views.Pages.Home.Home"))() end)
 
 newInstance("Profile", "Folder", "Havoc.views.Pages.Home.Profile", "Havoc.views.Pages.Home")
 
@@ -10157,7 +10157,7 @@ newModule("Actions", "ModuleScript", "Havoc.views.Pages.Home.Profile.Actions", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Actions"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Actions"))() end)
 
 newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Home.Profile.Avatar", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10204,7 +10204,7 @@ newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Home.Profile.Avatar", "Ha
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Avatar"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Avatar"))() end)
 
 newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10322,7 +10322,7 @@ newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Info"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Info"))() end)
 
 newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile.Profile", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10366,7 +10366,7 @@ newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile.Profile", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Profile"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Profile"))() end)
 
 newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10514,7 +10514,7 @@ newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Sliders"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Sliders"))() end)
 
 newModule("Username", "ModuleScript", "Havoc.views.Pages.Home.Profile.Username", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10561,7 +10561,7 @@ newModule("Username", "ModuleScript", "Havoc.views.Pages.Home.Profile.Username",
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.Username"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.Username"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Home.Profile.init", "Havoc.views.Pages.Home.Profile", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10570,7 +10570,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Home.Profile.init", "Havoc.
 	exports.default = TS.import(script, script, "Profile").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Home.Profile.init"))()end)
+end, newEnv("Havoc.views.Pages.Home.Profile.init"))() end)
 
 newInstance("Server", "Folder", "Havoc.views.Pages.Home.Server", "Havoc.views.Pages.Home")
 
@@ -10655,7 +10655,7 @@ newModule("Server", "ModuleScript", "Havoc.views.Pages.Home.Server.Server", "Hav
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Server.Server"))()end)
+end, newEnv("Havoc.views.Pages.Home.Server.Server"))() end)
 
 newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerAction", "Havoc.views.Pages.Home.Server", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10734,7 +10734,7 @@ newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerA
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Server.ServerAction"))()end)
+end, newEnv("Havoc.views.Pages.Home.Server.ServerAction"))() end)
 
 newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLabel", "Havoc.views.Pages.Home.Server", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10800,7 +10800,7 @@ newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLa
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Home.Server.StatusLabel"))()end)
+end, newEnv("Havoc.views.Pages.Home.Server.StatusLabel"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Home.Server.init", "Havoc.views.Pages.Home.Server", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10809,7 +10809,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Home.Server.init", "Havoc.v
 	exports.default = TS.import(script, script, "Server").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Home.Server.init"))()end)
+end, newEnv("Havoc.views.Pages.Home.Server.init"))() end)
 
 newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.Pages.Home", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10946,7 +10946,7 @@ newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.
 	end
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Home.Title"))()end)
+end, newEnv("Havoc.views.Pages.Home.Title"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Home.init", "Havoc.views.Pages.Home", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -10955,7 +10955,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Home.init", "Havoc.views.Pa
 	exports.default = TS.import(script, script, "Home").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Home.init"))()end)
+end, newEnv("Havoc.views.Pages.Home.init"))() end)
 
 newInstance("Misc", "Folder", "Havoc.views.Pages.Misc", "Havoc.views.Pages")
 
@@ -11265,7 +11265,7 @@ newModule("GistLoader", "ModuleScript", "Havoc.views.Pages.Misc.GistLoader", "Ha
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Misc.GistLoader"))()end)
+end, newEnv("Havoc.views.Pages.Misc.GistLoader"))() end)
 
 newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc.Misc", "Havoc.views.Pages.Misc", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11312,7 +11312,7 @@ newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc.Misc", "Havoc.views.Pa
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Misc.Misc"))()end)
+end, newEnv("Havoc.views.Pages.Misc.Misc"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Misc.init", "Havoc.views.Pages.Misc", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11321,7 +11321,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Misc.init", "Havoc.views.Pa
 	exports.default = TS.import(script, script, "Misc").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Misc.init"))()end)
+end, newEnv("Havoc.views.Pages.Misc.init"))() end)
 
 newInstance("Options", "Folder", "Havoc.views.Pages.Options", "Havoc.views.Pages")
 
@@ -11396,7 +11396,7 @@ newModule("Config", "ModuleScript", "Havoc.views.Pages.Options.Config.Config", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Config.Config"))()end)
+end, newEnv("Havoc.views.Pages.Options.Config.Config"))() end)
 
 newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.ConfigItem", "Havoc.views.Pages.Options.Config", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11509,7 +11509,7 @@ newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.Config
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Config.ConfigItem"))()end)
+end, newEnv("Havoc.views.Pages.Options.Config.ConfigItem"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Config.init", "Havoc.views.Pages.Options.Config", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11518,7 +11518,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Config.init", "Havo
 	exports.default = TS.import(script, script, "Config").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Options.Config.init"))()end)
+end, newEnv("Havoc.views.Pages.Options.Config.init"))() end)
 
 newModule("Options", "ModuleScript", "Havoc.views.Pages.Options.Options", "Havoc.views.Pages.Options", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11549,7 +11549,7 @@ newModule("Options", "ModuleScript", "Havoc.views.Pages.Options.Options", "Havoc
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Options"))()end)
+end, newEnv("Havoc.views.Pages.Options.Options"))() end)
 
 newInstance("Shortcuts", "Folder", "Havoc.views.Pages.Options.Shortcuts", "Havoc.views.Pages.Options")
 
@@ -11761,7 +11761,7 @@ newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.S
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Shortcuts.ShortcutItem"))()end)
+end, newEnv("Havoc.views.Pages.Options.Shortcuts.ShortcutItem"))() end)
 
 newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.Shortcuts", "Havoc.views.Pages.Options.Shortcuts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11905,7 +11905,7 @@ newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.Shor
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Shortcuts.Shortcuts"))()end)
+end, newEnv("Havoc.views.Pages.Options.Shortcuts.Shortcuts"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.init", "Havoc.views.Pages.Options.Shortcuts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -11914,7 +11914,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.init", "H
 	exports.default = TS.import(script, script, "Shortcuts").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Options.Shortcuts.init"))()end)
+end, newEnv("Havoc.views.Pages.Options.Shortcuts.init"))() end)
 
 newInstance("Themes", "Folder", "Havoc.views.Pages.Options.Themes", "Havoc.views.Pages.Options")
 
@@ -12114,7 +12114,7 @@ newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeIt
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Themes.ThemeItem"))()end)
+end, newEnv("Havoc.views.Pages.Options.Themes.ThemeItem"))() end)
 
 newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes.Themes", "Havoc.views.Pages.Options.Themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12197,7 +12197,7 @@ newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes.Themes", "
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Options.Themes.Themes"))()end)
+end, newEnv("Havoc.views.Pages.Options.Themes.Themes"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Themes.init", "Havoc.views.Pages.Options.Themes", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12206,7 +12206,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Options.Themes.init", "Havo
 	exports.default = TS.import(script, script, "Themes").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Options.Themes.init"))()end)
+end, newEnv("Havoc.views.Pages.Options.Themes.init"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Options.init", "Havoc.views.Pages.Options", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12215,7 +12215,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Options.init", "Havoc.views
 	exports.default = TS.import(script, script, "Options").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Options.init"))()end)
+end, newEnv("Havoc.views.Pages.Options.init"))() end)
 
 newModule("Pages", "ModuleScript", "Havoc.views.Pages.Pages", "Havoc.views.Pages", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12263,7 +12263,7 @@ newModule("Pages", "ModuleScript", "Havoc.views.Pages.Pages", "Havoc.views.Pages
 	end
 	return Pages
 	
-end, newEnv("Havoc.views.Pages.Pages"))()end)
+end, newEnv("Havoc.views.Pages.Pages"))() end)
 
 newInstance("Scripts", "Folder", "Havoc.views.Pages.Scripts", "Havoc.views.Pages")
 
@@ -12395,7 +12395,7 @@ newModule("Content", "ModuleScript", "Havoc.views.Pages.Scripts.Content", "Havoc
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Scripts.Content"))()end)
+end, newEnv("Havoc.views.Pages.Scripts.Content"))() end)
 
 newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", "Havoc.views.Pages.Scripts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12572,7 +12572,7 @@ newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", 
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Scripts.ScriptCard"))()end)
+end, newEnv("Havoc.views.Pages.Scripts.ScriptCard"))() end)
 
 newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts.Scripts", "Havoc.views.Pages.Scripts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12752,7 +12752,7 @@ newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts.Scripts", "Havoc
 		default = default,
 	}
 	
-end, newEnv("Havoc.views.Pages.Scripts.Scripts"))()end)
+end, newEnv("Havoc.views.Pages.Scripts.Scripts"))() end)
 
 newModule("constants", "ModuleScript", "Havoc.views.Pages.Scripts.constants", "Havoc.views.Pages.Scripts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12765,7 +12765,7 @@ newModule("constants", "ModuleScript", "Havoc.views.Pages.Scripts.constants", "H
 		BASE_PADDING = BASE_PADDING,
 	}
 	
-end, newEnv("Havoc.views.Pages.Scripts.constants"))()end)
+end, newEnv("Havoc.views.Pages.Scripts.constants"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.Scripts.init", "Havoc.views.Pages.Scripts", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12774,7 +12774,7 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.Scripts.init", "Havoc.views
 	exports.default = TS.import(script, script, "Scripts").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.Scripts.init"))()end)
+end, newEnv("Havoc.views.Pages.Scripts.init"))() end)
 
 newModule("init", "ModuleScript", "Havoc.views.Pages.init", "Havoc.views.Pages", function () return setfenv(function()
 	--Compiled with roblox-ts v1.3.3
@@ -12783,5 +12783,5 @@ newModule("init", "ModuleScript", "Havoc.views.Pages.init", "Havoc.views.Pages",
 	exports.default = TS.import(script, script, "Pages").default
 	return exports
 	
-end, newEnv("Havoc.views.Pages.init"))()end)
+end, newEnv("Havoc.views.Pages.init"))() end)
 hInit()
