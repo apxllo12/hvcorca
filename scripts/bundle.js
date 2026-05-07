@@ -62,8 +62,28 @@ function collectFiles(dir, basePath = "") {
 
 function generateOutput(files, version, isDebug = false, isMinify = false) {
     let body = [];
+    let foldersAdded = new Set(["Havoc"]);
     
-    // Add root folder first
+    function addFolder(path) {
+        if (path && !foldersAdded.has(path) && path.startsWith("Havoc.")) {
+            foldersAdded.add(path);
+            const parts = path.split(".");
+            const name2 = parts.pop();
+            const parentPath = parts.join(".");
+            
+            // Recursively add parent first
+            if (parts.length > 1) {
+                addFolder(parentPath);
+            }
+            
+            // Build line separately to avoid escaping issues
+            const parent2 = parentPath === "Havoc" ? "nil" : parentPath;
+            const line = 'newInstance("' + name2 + '", "Folder", "' + path + '", "' + parent2 + '")';
+            body.push(line);
+        }
+    }
+    
+    // Add root folder
     body.push('newInstance("Havoc", "Folder", "Havoc", nil)');
     
     // Generate module creation code
@@ -75,6 +95,9 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
             fullPath = "Havoc." + fullPath;
         }
         
+        // Add parent folders
+        addFolder(fullPath);
+        
         const name = fullPath.split(".").pop();
         const parentPath = fullPath.split(".").slice(0, -1).join(".");
         
@@ -82,7 +105,7 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
         
         // Indent content properly  
         const indented = f.content.split("\n").map(l => "\t" + l).join("\n");
-        const line = `newModule("${name}", "${className}", "${fullPath}", "${parentPath}", function ()
+        const line = `newModule("${name}", "${className}", "${fullPath}", "${parentPath === "Havoc" ? "nil" : parentPath}", function ()
 return setfenv(function()
 ${indented}
 end, newEnv(${JSON.stringify(fullPath)}))()
