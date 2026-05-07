@@ -28,28 +28,38 @@ local function transformInlineIfs(source)
 	local lines = {}
 	for line in (source .. "\n"):gmatch("([^\n]*)\n") do
 		-- Keep transforming until no more inline ifs remain on this line.
-		-- We do multiple passes to catch chained occurrences.
 		local changed = true
 		while changed do
 			changed = false
 			-- Match inline if preceded by = ( or , (expression context, not statement)
-			-- Captures up to the next unquoted , ) ] or end-of-line as the else-value.
+			-- Captures: prefix (pre), condition (cond), then-value (tval), else-value (eval)
 			local new = line:gsub(
-				"([=(,%(][ \t]*)if[ \t]+(.-)[ \t]+then[ \t]+(.-)[ \t]+else[ \t]+([^,%)%]\n]+)",
-				function(pre, cond, tval, eval)
-					-- Strip trailing whitespace from eval
-					eval = eval:match("^(.-)%s*$")
-					-- Recursively insert returns into elseif chains within tval/eval
-					-- (roblox-ts does not currently nest elseifs deeply, but be safe)
-					-- Insert 'return' into any elseif branches inside tval
-					tval = tval:gsub("elseif%s+(.-)%s+then%s+", "elseif %1 then return ")
-					local body = "if " .. cond .. " then return " .. tval .. " else return " .. eval .. " end"
+				"([=(,%(][ \t]*)if[ \t](.-)[ \t]then[ \t](.-)[ \t]else[ \t]([^,%)]+),?([^%]*)",
+				function(pre, cond, tval, eval, rest)
+					-- Clean up whitespace
+					cond = cond:match("^%s*(.-)%s*$") or cond
+					tval = tval:match("^%s*(.-)%s*$") or tval
+					eval = eval:match("^%s*(.-)%s*$") or eval
+					
+					-- Add return keywords inside branches (only to then clause - simpler)
+					local thenBody = tval:gsub("^%s*(.-)%s*$", "%1")
+					-- Handle common function calls in then value
+					if not thenBody:match("^return ") then
+						thenBody = "return " .. thenBody
+					end
+					if not eval:match("^return ") then
+						eval = "return " .. eval
+					end
+					
+					local inner = "(function() if " .. cond .. " then " .. thenBody .. " else " .. eval .. " end end)()"
 					changed = true
-					return pre .. "(function() " .. body .. " end)()"
+					return pre .. inner .. rest
 				end
 			)
 			if new ~= line then
 				line = new
+			else
+				changed = false
 			end
 		end
 		table.insert(lines, line)
@@ -82,9 +92,15 @@ end
 ---@return string
 local function minify(source)
 	remodel.writeFile(BUNDLE_TEMP, transformInput(source))
-	local ok = os.execute("node ci/minify.js")
+	local ok, err = pcall(function()
+		local res = os.execute("node ci/minify.js")
+		if not res then
+			error("minify step failed")
+		end
+	end)
 	if not ok then
 		print("[Hvcorca " .. VERSION .. "] Minify step failed — falling back to unminified output")
+		print("[Hvcorca " .. VERSION .. "] Error: " .. tostring(err))
 		os.remove(BUNDLE_TEMP)
 		return source
 	end
