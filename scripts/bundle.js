@@ -6,7 +6,7 @@ const luamin = require("luamin");
 
 const outDir = "out";
 const publicDir = "public";
-const runtimeFile = "scripts/runtime.lua";
+const runtimeFile = "scripts/runtime_v2.lua";
 const tempFile = "scripts/bundle.tmp";
 
 function stripLuaComments(src) {
@@ -64,52 +64,79 @@ function generateOutput(files, version, isDebug = false, isMinify = false) {
     let body = [];
     let foldersAdded = new Set(["Havoc"]);
     
+    // Organize files by folder - use proper paths
+    let byFolder = {};
+    for (const f of files) {
+        // Build path like: Havoc.include.Promise, Havoc.App, Havoc.components.ActionButton
+        let fullPath = f.path.replace(/\\/g, ".").replace(".lua", "");
+        // Don't add prefix - rbxts already outputs correct structure
+        const folder = fullPath.split(".").slice(0, -1).join(".") || "Havoc";
+        
+        if (!byFolder[folder]) byFolder[folder] = [];
+        byFolder[folder].push({ path: fullPath, name: fullPath.split(".").pop(), content: f.content });
+    }
+    
     function addFolder(path) {
-        if (path && !foldersAdded.has(path) && path.startsWith("Havoc.")) {
+        if (path && !foldersAdded.has(path)) {
             foldersAdded.add(path);
             const parts = path.split(".");
             const name2 = parts.pop();
             const parentPath = parts.join(".");
             
-            // Recursively add parent first
-            if (parts.length > 1) {
+            if (parts.length >= 1) {
                 addFolder(parentPath);
             }
             
-            // Build line separately to avoid escaping issues
             const parent2 = parentPath === "Havoc" ? "nil" : parentPath;
             const line = 'newInstance("' + name2 + '", "Folder", "' + path + '", "' + parent2 + '")';
             body.push(line);
         }
     }
     
-    // Add root folder
+    // Add root
     body.push('newInstance("Havoc", "Folder", "Havoc", nil)');
     
-    // Generate module creation code
+    // Process include first (files at root level without prefixes then subfolders)
+    const processed = new Set();
+    
+    // First pass - include files at root - also convert slashes
     for (const f of files) {
-        // Build proper path with Havoc prefix
-        let fullPath = f.path.replace(/\\/g, ".");
-        fullPath = fullPath.replace(".lua", "");
-        if (!fullPath.startsWith("Havoc.")) {
-            fullPath = "Havoc." + fullPath;
+        const fullPath = f.path.split("/").join(".").replace(".lua", "");
+        const name = fullPath.split(".").pop();
+        
+        if (f.path.startsWith("include/")) {
+            addFolder(fullPath);
+            const className = f.path.includes("main.client") ? "LocalScript" : "ModuleScript";
+            const indented = f.content.split("\n").map(l => "\t" + l).join("\n");
+            const line = 'newModule("' + name + '", "' + className + '", "' + fullPath + '", "nil", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + fullPath + "\"))()end)";
+            body.push(line);
+            processed.add(f.path);
+        }
+    }
+    
+    // Second pass - out/ files with proper parent structure
+    for (const f of files) {
+        if (processed.has(f.path)) continue;
+        
+        // Convert slashes to dots in path: components/ActionButton -> components.ActionButton
+        const fullPath = f.path.split("/").join(".").replace(".lua", "");
+        const name = fullPath.split(".").pop();
+        
+        // Get parent - determine hierarchy using DOTS
+        let parentPath;
+        const parts = fullPath.split(".");
+        if (parts.length === 1) {
+            parentPath = "Havoc";
+        } else {
+            parentPath = "Havoc." + parts.slice(0, -1).join(".");
         }
         
         // Add parent folders
-        addFolder(fullPath);
-        
-        const name = fullPath.split(".").pop();
-        const parentPath = fullPath.split(".").slice(0, -1).join(".");
+        addFolder(parentPath);
         
         const className = f.path.includes("main.client") ? "LocalScript" : "ModuleScript";
-        
-        // Indent content properly  
         const indented = f.content.split("\n").map(l => "\t" + l).join("\n");
-        const line = `newModule("${name}", "${className}", "${fullPath}", "${parentPath === "Havoc" ? "nil" : parentPath}", function ()
-return setfenv(function()
-${indented}
-end, newEnv(${JSON.stringify(fullPath)}))()
-end)`;
+        const line = 'newModule("' + name + '", "' + className + '", "' + parentPath + '.' + name + '", "' + parentPath + '", function () return setfenv(function()' + "\n" + indented + "\nend, newEnv(\"" + parentPath + '.' + name + "\"))()end)";
         body.push(line);
     }
     
