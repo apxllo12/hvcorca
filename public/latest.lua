@@ -282,7 +282,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 		function Error:__tostring()
 			local errorStrings = {
-				string.format("-- Promise.Error(%s) --", self.kind or "?"),
+				string.format("-- Promise.Error(%s)
 			}
 	
 			for _, runtimeError in ipairs(self:getErrorChain()) do
@@ -367,10 +367,10 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		@interface Status
 		@tag enum
 		@within Promise
-		.Started "Started" -- The Promise is executing, and not settled yet.
-		.Resolved "Resolved" -- The Promise finished successfully.
-		.Rejected "Rejected" -- The Promise was rejected.
-		.Cancelled "Cancelled" -- The Promise was cancelled before it finished.
+		.Started "Started"
+		.Resolved "Resolved"
+		.Rejected "Rejected"
+		.Cancelled "Cancelled"
 	]=]
 	--[=[
 		@prop Status Status
@@ -630,7 +630,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		```
 	
 		@param callback (...: T...) -> ...any
-		@param ... T... -- Additional arguments passed to `callback`
+		@param ... T...
 		@return Promise
 	]=]
 	function Promise.try(callback, ...)
@@ -761,7 +761,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		local basket = {"blueberry", "melon", "pear", "melon"}
 		Promise.fold(basket, function(cost, fruit)
 			if fruit == "blueberry" then
-				return cost -- blueberries are free!
+				return cost
 			else
 				-- call a function that returns a promise with the fruit price
 				return fetchPrice(fruit):andThen(function(fruitCost)
@@ -802,7 +802,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 			returnsAPromise("example 3"),
 		}
 	
-		return Promise.some(promises, 2) -- Only resolves with first 2 promises to resolve
+		return Promise.some(promises, 2)
 		```
 	
 		@param promises {Promise<T>}
@@ -827,7 +827,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 			returnsAPromise("example 3"),
 		}
 	
-		return Promise.any(promises) -- Resolves with first value to resolve (only rejects if all 3 rejected)
+		return Promise.any(promises)
 		```
 	
 		@param promises {Promise<T>}
@@ -927,7 +927,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 			returnsAPromise("example 3"),
 		}
 	
-		return Promise.race(promises) -- Only returns 1st value to resolve or reject
+		return Promise.race(promises)
 		```
 	
 		@param promises {Promise<T>}
@@ -1125,7 +1125,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		Checks whether the given object is a Promise via duck typing. This only checks if the object is a table and has an `andThen` method.
 	
 		@param object any
-		@return boolean -- `true` if the given `object` is a Promise.
+		@return boolean
 	]=]
 	function Promise.is(object)
 		if type(object) ~= "table" then
@@ -1225,7 +1225,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 					endTime = endTime,
 				}
 	
-				if connection == nil then -- first is nil when connection is nil
+				if connection == nil then
 					first = node
 					connection = Promise._timeEvent:Connect(function()
 						local threadStart = Promise._getTime()
@@ -1244,8 +1244,8 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 							current.resolve(Promise._getTime() - current.startTime)
 						end
 					end)
-				else -- first is non-nil
-					if first.endTime < endTime then -- if `node` should be placed after `first`
+				else
+					if first.endTime < endTime then
 						-- we will insert `node` between `current` and `next`
 						-- (i.e. after `current` if `next` is nil)
 						local current = first
@@ -1277,10 +1277,10 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 					local next = node.next
 	
 					if first == node then
-						if next == nil then -- if `node` is the first and last
+						if next == nil then
 							connection:Disconnect()
 							connection = nil
-						else -- if `node` is `first` and not the last
+						else
 							next.previous = nil
 						end
 						first = next
@@ -1333,7 +1333,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		```
 	
 		@param seconds number
-		@param rejectionValue? any -- The value to reject with if the timeout is reached
+		@param rejectionValue? any
 		@return Promise
 	]=]
 	function Promise.prototype:timeout(seconds, rejectionValue)
@@ -1495,7 +1495,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		```
 	
 		@param callback (...: any) -> any
-		@param ...? any -- Additional arguments which will be passed to `callback`
+		@param ...? any
 		@return Promise
 	]=]
 	function Promise.prototype:andThenCall(callback, ...)
@@ -1525,7 +1525,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		Promises are eager, so if you pass a Promise to `andThenReturn`, it will begin executing before `andThenReturn` is reached in the chain. Likewise, if you pass a Promise created from [[Promise.reject]] into `andThenReturn`, it's possible that this will trigger the unhandled rejection warning. If you need to return a Promise, it's usually best practice to use [[Promise.andThen]].
 		:::
 	
-		@param ... any -- Values to return from the function
+		@param ... any
 		@return Promise
 	]=]
 	function Promise.prototype:andThenReturn(...)
@@ -1663,7 +1663,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		Attaches a `finally` handler to this Promise that calls the given callback with the predefined arguments.
 	
 		@param callback (...: any) -> any
-		@param ...? any -- Additional arguments which will be passed to `callback`
+		@param ...? any
 		@return Promise
 	]=]
 	function Promise.prototype:finallyCall(callback, ...)
@@ -1689,7 +1689,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 			end)
 		```
 	
-		@param ... any -- Values to return from the function
+		@param ... any
 		@return Promise
 	]=]
 	function Promise.prototype:finallyReturn(...)
@@ -1726,7 +1726,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		Attaches a `done` handler to this Promise that calls the given callback with the predefined arguments.
 	
 		@param callback (...: any) -> any
-		@param ...? any -- Additional arguments which will be passed to `callback`
+		@param ...? any
 		@return Promise
 	]=]
 	function Promise.prototype:doneCall(callback, ...)
@@ -1752,7 +1752,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 			end)
 		```
 	
-		@param ... any -- Values to return from the function
+		@param ... any
 		@return Promise
 	]=]
 	function Promise.prototype:doneReturn(...)
@@ -1766,8 +1766,8 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		Yields the current thread until the given Promise completes. Returns the Promise's status, followed by the values that the promise resolved or rejected with.
 	
 		@yields
-		@return Status -- The Status representing the fate of the Promise
-		@return ...any -- The values the Promise resolved or rejected with.
+		@return Status
+		@return ...any
 	]=]
 	function Promise.prototype:awaitStatus()
 		self._unhandledRejection = false
@@ -1814,8 +1814,8 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		```
 	
 		@yields
-		@return boolean -- `true` if the Promise successfully resolved
-		@return ...any -- The values the Promise resolved or rejected with.
+		@return boolean
+		@return ...any
 	]=]
 	function Promise.prototype:await()
 		return awaitHelper(self:awaitStatus())
@@ -1850,9 +1850,9 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 		**Errors** if the Promise rejects or gets cancelled.
 	
-		@error any -- Errors with the rejection value if this Promise rejects or gets cancelled.
+		@error any
 		@yields
-		@return ...any -- The values the Promise resolved with.
+		@return ...any
 	]=]
 	function Promise.prototype:expect()
 		return expectHelper(self:awaitStatus())
@@ -2035,7 +2035,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 	
 		If this Promise is still running, Rejected, or Cancelled, the Promise returned from `:now()` will reject with the `rejectionValue` if passed, otherwise with a `Promise.Error(Promise.Error.Kind.NotResolvedInTime)`. This can be checked with [[Error.isKind]].
 	
-		@param rejectionValue? any -- The value to reject with if the Promise isn't resolved
+		@param rejectionValue? any
 		@return Promise
 	]=]
 	function Promise.prototype:now(rejectionValue)
@@ -2074,7 +2074,7 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		end
 	
 		local MAX_RETRIES = 10
-		local value = Promise.retry(canFail, MAX_RETRIES, "foo", "bar", "baz") -- args to send to canFail
+		local value = Promise.retry(canFail, MAX_RETRIES, "foo", "bar", "baz")
 		```
 	
 		@since 3.0.0
@@ -2147,8 +2147,8 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		```
 	
 		@since 3.0.0
-		@param event Event -- Any object with a `Connect` method. This includes all Roblox events.
-		@param predicate? (...: P) -> boolean -- A function which determines if the Promise should resolve with the given value, or wait for the next event to check again.
+		@param event Event
+		@param predicate? (...: P) -> boolean
 		@return Promise<P>
 	]=]
 	function Promise.fromEvent(event, predicate)
@@ -2200,8 +2200,8 @@ newModule("Promise", "ModuleScript", "Havoc.Promise", "Havoc", function () retur
 		The callback is called with the actual promise that rejected, followed by the rejection values.
 	
 		@since v3.2.0
-		@param callback (promise: Promise, ...: any) -- A callback that runs when an unhandled rejection happens.
-		@return () -> () -- Function that unregisters the `callback` when called
+		@param callback (promise: Promise, ...: any)
+		@return () -> ()
 	]=]
 	function Promise.onUnhandledRejection(callback)
 		table.insert(Promise._unhandledRejectionCallbacks, callback)
@@ -2301,7 +2301,7 @@ newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function ()
 			currentModule = currentlyLoading[currentModule]
 	
 			if currentModule == module then
-				local str = currentModule.Name -- Get the string traceback
+				local str = currentModule.Name
 	
 				for _ = 1, depth do
 					currentModule = currentlyLoading[currentModule]
@@ -2321,12 +2321,12 @@ newModule("RuntimeLib", "ModuleScript", "Havoc.RuntimeLib", "Havoc", function ()
 			end
 	
 			_G[module] = TS
-			registeredLibraries[module] = true -- register as already loaded for subsequent calls
+			registeredLibraries[module] = true
 		end
 	
 		local data = require(module)
 	
-		if currentlyLoading[caller] == module then -- Thread-safe cleanup!
+		if currentlyLoading[caller] == module then
 			currentlyLoading[caller] = nil
 		end
 	
@@ -5321,12 +5321,12 @@ newModule("init", "ModuleScript", "Havoc.jobs.helpers.freecam.init", "Havoc.jobs
 	
 			function Input.StartCapture()
 				ContextActionService:BindActionAtPriority(FREECAM_RENDER_ID .. "FreecamKeyboard", Keypress, false, INPUT_PRIORITY,
-					Enum.KeyCode.W, -- Enum.KeyCode.U,
-					Enum.KeyCode.A, -- Enum.KeyCode.H,
-					Enum.KeyCode.S, -- Enum.KeyCode.J,
-					Enum.KeyCode.D, -- Enum.KeyCode.K,
-					Enum.KeyCode.E, -- Enum.KeyCode.I,
-					Enum.KeyCode.Q, -- Enum.KeyCode.Y,
+					Enum.KeyCode.W,
+					Enum.KeyCode.A,
+					Enum.KeyCode.S,
+					Enum.KeyCode.D,
+					Enum.KeyCode.E,
+					Enum.KeyCode.Q,
 					Enum.KeyCode.Up, Enum.KeyCode.Down
 				)
 				ContextActionService:BindActionAtPriority(FREECAM_RENDER_ID .. "FreecamMousePan",          MousePan,   false, INPUT_PRIORITY, Enum.UserInputType.MouseMovement)
