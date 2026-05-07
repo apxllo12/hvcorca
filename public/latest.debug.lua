@@ -166,10 +166,12 @@ local function hInit()
 	end
 end
 
+return hInit
+
 
 newInstance("Havoc", "Folder", "Havoc", nil)
 
-newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("App", "ModuleScript", "Havoc.App", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Dashboard = TS.import(script, script.Parent, \"views\", \"Dashboard\").default\
@@ -192,14 +194,14 @@ return {\
 
 newInstance("components", "Folder", "Havoc.components", "Havoc")
 
-newModule("Acrylic", "ModuleScript", "Havoc.components.Acrylic", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Acrylic", "ModuleScript", "Havoc.components.Acrylic", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Acrylic\").default\
 return exports\
 ", '@'.."Havoc.components.Acrylic")) setfenv(fn, newEnv("Havoc.components.Acrylic")) return fn() end)
 
-newModule("Acrylic", "ModuleScript", "Havoc.components.Acrylic.Acrylic", "Havoc.components.Acrylic", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Acrylic", "ModuleScript", "Havoc.components.Acrylic.Acrylic", "Havoc.components.Acrylic", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -236,7 +238,13 @@ local function Acrylic(_param)\
 \9\9distance = distance,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9return Roact.createFragment(_children)\
 end\
@@ -360,7 +368,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Acrylic.Acrylic")) setfenv(fn, newEnv("Havoc.components.Acrylic.Acrylic")) return fn() end)
 
-newModule("acrylic-instance", "ModuleScript", "Havoc.components.Acrylic.acrylic-instance", "Havoc.components.Acrylic", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("acrylic-instance", "ModuleScript", "Havoc.components.Acrylic.acrylic-instance", "Havoc.components.Acrylic", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Make = TS.import(script, TS.getModule(script, \"@rbxts\", \"make\"))\
 local fill = {\
@@ -453,7 +461,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Acrylic.acrylic-instance")) setfenv(fn, newEnv("Havoc.components.Acrylic.acrylic-instance")) return fn() end)
 
-newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ActionButton", "ModuleScript", "Havoc.components.ActionButton", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -489,9 +497,29 @@ local function ActionButton(_param)\
 \9end)\
 \9local hovered, setHovered = useState(false)\
 \9local highlightMap = theme.highlight\
-\9local accent = highlightMap[action] or theme.button.background\
-\9local background = useSpring(if active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})\
-\9local foreground = useSpring(if active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.button.foreground, {})\
+\9local _condition = highlightMap[action]\
+\9if _condition == nil then\
+\9\9_condition = theme.button.background\
+\9end\
+\9local accent = _condition\
+\9local _result\
+\9if active then\
+\9\9_result = accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition_1 = theme.button.backgroundHovered\
+\9\9\9if _condition_1 == nil then\
+\9\9\9\9_condition_1 = theme.button.background:Lerp(accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition_1\
+\9\9else\
+\9\9\9_result_1 = theme.button.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local background = useSpring(_result, {})\
+\9local foreground = useSpring(active and theme.button.foregroundAccent and theme.button.foregroundAccent or theme.button.foreground, {})\
 \9return Roact.createElement(BrightButton, {\
 \9\9onActivate = function()\
 \9\9\9if active and canDeactivate then\
@@ -519,7 +547,7 @@ local function ActionButton(_param)\
 \9\9Roact.createElement(\"ImageLabel\", {\
 \9\9\9Image = image,\
 \9\9\9ImageColor3 = foreground,\
-\9\9\9ImageTransparency = useSpring(if active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),\
+\9\9\9ImageTransparency = useSpring(active and 0 or (hovered and theme.button.foregroundTransparency - 0.25 or theme.button.foregroundTransparency), {}),\
 \9\9\9Size = px(36, 36),\
 \9\9\9Position = px(12, 6),\
 \9\9\9BackgroundTransparency = 1,\
@@ -532,7 +560,7 @@ return {\
 }\
 ", '@'.."Havoc.components.ActionButton")) setfenv(fn, newEnv("Havoc.components.ActionButton")) return fn() end)
 
-newModule("Border", "ModuleScript", "Havoc.components.Border", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Border", "ModuleScript", "Havoc.components.Border", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _binding_util = TS.import(script, script.Parent.Parent, \"utils\", \"binding-util\")\
@@ -593,7 +621,7 @@ local function Border(_param)\
 \9\9}):map(function(_param_1)\
 \9\9\9local radius = _param_1.radius\
 \9\9\9local size = _param_1.size\
-\9\9\9return if radius == \"circular\" then UDim.new(1, 0) else UDim.new(0, radius - size * 2)\
+\9\9\9return radius == \"circular\" and UDim.new(1, 0) or UDim.new(0, radius - size * 2)\
 \9\9end),\
 \9})\
 \9return Roact.createElement(\"Frame\", _attributes, _children)\
@@ -604,7 +632,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Border")) setfenv(fn, newEnv("Havoc.components.Border")) return fn() end)
 
-newModule("BrightButton", "ModuleScript", "Havoc.components.BrightButton", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("BrightButton", "ModuleScript", "Havoc.components.BrightButton", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Border = TS.import(script, script.Parent, \"Border\").default\
@@ -673,7 +701,13 @@ local function BrightButton(_param)\
 \9\9transparency = 0.8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextButton\", {\
@@ -734,7 +768,7 @@ return {\
 }\
 ", '@'.."Havoc.components.BrightButton")) setfenv(fn, newEnv("Havoc.components.BrightButton")) return fn() end)
 
-newModule("BrightSlider", "ModuleScript", "Havoc.components.BrightSlider", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("BrightSlider", "ModuleScript", "Havoc.components.BrightSlider", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Spring = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Spring\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
@@ -832,7 +866,13 @@ local function BrightSlider(_param)\
 \9\9transparency = 0.8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(Drag, {\
@@ -920,7 +960,7 @@ return {\
 }\
 ", '@'.."Havoc.components.BrightSlider")) setfenv(fn, newEnv("Havoc.components.BrightSlider")) return fn() end)
 
-newModule("Canvas", "ModuleScript", "Havoc.components.Canvas", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Canvas", "ModuleScript", "Havoc.components.Canvas", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local mapBinding = TS.import(script, script.Parent.Parent, \"utils\", \"binding-util\").mapBinding\
@@ -973,7 +1013,13 @@ local function Canvas(_param)\
 \9\9}),\
 \9}))\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9if children then\
@@ -990,7 +1036,7 @@ end\
 return Canvas\
 ", '@'.."Havoc.components.Canvas")) setfenv(fn, newEnv("Havoc.components.Canvas")) return fn() end)
 
-newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Card", "ModuleScript", "Havoc.components.Card", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Acrylic = TS.import(script, script.Parent, \"Acrylic\").default\
@@ -1020,7 +1066,7 @@ local function Card(_param)\
 \9local _attributes = {\
 \9\9anchor = Vector2.new(0, 1),\
 \9\9size = size,\
-\9\9position = useSpring(if isActive then position else positionWhenHidden, {\
+\9\9position = useSpring(isActive and position or positionWhenHidden, {\
 \9\9\9frequency = 2,\
 \9\9\9dampingRatio = 0.8,\
 \9\9}),\
@@ -1056,7 +1102,13 @@ local function Card(_param)\
 \9\9acrylic = Roact.createElement(Acrylic),\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9local _child_1 = theme.outlined and Roact.createElement(Border, {\
@@ -1065,7 +1117,13 @@ local function Card(_param)\
 \9\9transparency = 0.8,\
 \9})\
 \9if _child_1 then\
-\9\9_children[_length + 1] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 1] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9return Roact.createElement(Canvas, _attributes, _children)\
 end\
@@ -1075,7 +1133,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Card")) setfenv(fn, newEnv("Havoc.components.Card")) return fn() end)
 
-newModule("Fill", "ModuleScript", "Havoc.components.Fill", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Fill", "ModuleScript", "Havoc.components.Fill", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local mapBinding = TS.import(script, script.Parent.Parent, \"utils\", \"binding-util\").mapBinding\
@@ -1111,18 +1169,30 @@ local function Fill(_param)\
 \9\9}),\
 \9}))\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9local _child_1 = radius ~= nil and (Roact.createFragment({\
 \9\9corner = Roact.createElement(\"UICorner\", {\
 \9\9\9CornerRadius = mapBinding(radius, function(r)\
-\9\9\9\9return if r == \"circular\" then UDim.new(1, 0) else UDim.new(0, r)\
+\9\9\9\9return r == \"circular\" and UDim.new(1, 0) or UDim.new(0, r)\
 \9\9\9end),\
 \9\9}),\
 \9}))\
 \9if _child_1 then\
-\9\9_children[_length + 1] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 1] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9if children then\
@@ -1142,7 +1212,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Fill")) setfenv(fn, newEnv("Havoc.components.Fill")) return fn() end)
 
-newModule("Glow", "ModuleScript", "Havoc.components.Glow", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Glow", "ModuleScript", "Havoc.components.Glow", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useBinding = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useBinding\
@@ -1186,7 +1256,7 @@ local function Glow(_param)\
 \9local absoluteSize, setAbsoluteSize = useBinding(Vector2.new())\
 \9local scaleFactor = useScale()\
 \9local centerOffset = RADIUS_TO_CENTER_OFFSET[radius]\
-\9local sizeModifier = if maintainCornerRadius then Roact.joinBindings({\
+\9local sizeModifier = maintainCornerRadius and Roact.joinBindings({\
 \9\9absoluteSize = absoluteSize,\
 \9\9scaleFactor = scaleFactor,\
 \9\9size = asBinding(size),\
@@ -1196,8 +1266,8 @@ local function Glow(_param)\
 \9\9local scaleFactor = _param_1.scaleFactor\
 \9\9local currentSize = applyUDim2(absoluteSize, size, scaleFactor)\
 \9\9return px(math.max(currentSize.X, centerOffset * 2), math.max(currentSize.Y, centerOffset * 2))\
-\9end) else size\
-\9local transparencyModifier = if maintainCornerRadius then Roact.joinBindings({\
+\9end) or size\
+\9local transparencyModifier = maintainCornerRadius and Roact.joinBindings({\
 \9\9absoluteSize = absoluteSize,\
 \9\9scaleFactor = scaleFactor,\
 \9\9size = asBinding(size),\
@@ -1214,12 +1284,12 @@ local function Glow(_param)\
 \9\9else\
 \9\9\9return transparency\
 \9\9end\
-\9end) else transparency\
+\9end) or transparency\
 \9local _attributes = {\
 \9\9onChange = {\
-\9\9\9AbsoluteSize = if maintainCornerRadius then function(rbx)\
+\9\9\9AbsoluteSize = maintainCornerRadius and function(rbx)\
 \9\9\9\9return setAbsoluteSize(rbx.AbsoluteSize)\
-\9\9\9end else nil,\
+\9\9\9end or nil,\
 \9\9},\
 \9}\
 \9local _children = {}\
@@ -1247,7 +1317,13 @@ local function Glow(_param)\
 \9\9}),\
 \9}))\
 \9if _child then\
-\9\9_children_1[_length_1 + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children_1[_length_1 + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children_1[_length_1 + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length_1 = #_children_1\
 \9if children then\
@@ -1270,7 +1346,7 @@ return {\
 }\
 ", '@'.."Havoc.components.Glow")) setfenv(fn, newEnv("Havoc.components.Glow")) return fn() end)
 
-newModule("ParallaxImage", "ModuleScript", "Havoc.components.ParallaxImage", "Havoc.components", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ParallaxImage", "ModuleScript", "Havoc.components.ParallaxImage", "Havoc.components", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local mapBinding = TS.import(script, script.Parent.Parent, \"utils\", \"binding-util\").mapBinding\
@@ -1312,7 +1388,7 @@ return {\
 }\
 ", '@'.."Havoc.components.ParallaxImage")) setfenv(fn, newEnv("Havoc.components.ParallaxImage")) return fn() end)
 
-newModule("constants", "ModuleScript", "Havoc.constants", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("constants", "ModuleScript", "Havoc.constants", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local IS_DEV = getgenv == nil\
 local LOAD_GUARD = \"_HAVOC_IS_LOADED\"\
 local _condition = VERSION\
@@ -1329,7 +1405,7 @@ return {\
 
 newInstance("context", "Folder", "Havoc.context", "Havoc")
 
-newModule("scale-context", "ModuleScript", "Havoc.context.scale-context", "Havoc.context", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("scale-context", "ModuleScript", "Havoc.context.scale-context", "Havoc.context", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local ScaleContext = Roact.createContext((Roact.createBinding(1)))\
@@ -1342,7 +1418,7 @@ newInstance("hooks", "Folder", "Havoc.hooks", "Havoc")
 
 newInstance("common", "Folder", "Havoc.hooks.common", "Havoc.hooks")
 
-newModule("flipper-hooks", "ModuleScript", "Havoc.hooks.common.flipper-hooks", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("flipper-hooks", "ModuleScript", "Havoc.hooks.common.flipper-hooks", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.getBinding = TS.import(script, script, \"get-binding\").getBinding\
@@ -1354,7 +1430,7 @@ exports.useSpring = TS.import(script, script, \"use-spring\").useSpring\
 return exports\
 ", '@'.."Havoc.hooks.common.flipper-hooks")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks")) return fn() end)
 
-newModule("get-binding", "ModuleScript", "Havoc.hooks.common.flipper-hooks.get-binding", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("get-binding", "ModuleScript", "Havoc.hooks.common.flipper-hooks.get-binding", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local isMotor = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).isMotor\
 local createBinding = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src).createBinding\
@@ -1380,7 +1456,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.get-binding")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.get-binding")) return fn() end)
 
-newModule("use-goal", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-goal", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-goal", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-goal", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local getBinding = TS.import(script, script.Parent, \"get-binding\").getBinding\
 local useMotor = TS.import(script, script.Parent, \"use-motor\").useMotor\
@@ -1394,7 +1470,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.use-goal")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.use-goal")) return fn() end)
 
-newModule("use-instant", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-instant", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-instant", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-instant", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Instant = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Instant\
 local useGoal = TS.import(script, script.Parent, \"use-goal\").useGoal\
@@ -1406,7 +1482,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.use-instant")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.use-instant")) return fn() end)
 
-newModule("use-linear", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-linear", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-linear", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-linear", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Linear = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Linear\
 local useGoal = TS.import(script, script.Parent, \"use-goal\").useGoal\
@@ -1418,7 +1494,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.use-linear")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.use-linear")) return fn() end)
 
-newModule("use-motor", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-motor", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-motor", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-motor", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local _flipper = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src)\
 local GroupMotor = _flipper.GroupMotor\
@@ -1441,7 +1517,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.use-motor")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.use-motor")) return fn() end)
 
-newModule("use-spring", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-spring", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-spring", "ModuleScript", "Havoc.hooks.common.flipper-hooks.use-spring", "Havoc.hooks.common.flipper-hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Spring = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Spring\
 local useGoal = TS.import(script, script.Parent, \"use-goal\").useGoal\
@@ -1453,7 +1529,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.flipper-hooks.use-spring")) setfenv(fn, newEnv("Havoc.hooks.common.flipper-hooks.use-spring")) return fn() end)
 
-newModule("rodux-hooks", "ModuleScript", "Havoc.hooks.common.rodux-hooks", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("rodux-hooks", "ModuleScript", "Havoc.hooks.common.rodux-hooks", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_rodux_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-rodux-hooked\").src)\
 local useDispatch = _roact_rodux_hooked.useDispatch\
@@ -1473,7 +1549,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.rodux-hooks")) setfenv(fn, newEnv("Havoc.hooks.common.rodux-hooks")) return fn() end)
 
-newModule("use-delayed-update", "ModuleScript", "Havoc.hooks.common.use-delayed-update", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-delayed-update", "ModuleScript", "Havoc.hooks.common.use-delayed-update", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useEffect = _roact_hooked.useEffect\
@@ -1486,7 +1562,9 @@ local nextId = 0\
 local function clearUpdates(updates, laterThan)\
 \9for id, update in pairs(updates) do\
 \9\9if laterThan == nil or update.resolveTime >= laterThan then\
+\9\9\9-- ▼ Map.delete ▼\
 \9\9\9updates[id] = nil\
+\9\9\9-- ▲ Map.delete ▲\
 \9\9\9clearTimeout(update.timeout)\
 \9\9end\
 \9end\
@@ -1510,12 +1588,16 @@ local function useDelayedUpdate(value, delay, isImmediate)\
 \9\9local update = {\
 \9\9\9timeout = setTimeout(function()\
 \9\9\9\9setDelayedValue(value)\
+\9\9\9\9-- ▼ Map.delete ▼\
 \9\9\9\9updates.current[id] = nil\
+\9\9\9\9-- ▲ Map.delete ▲\
 \9\9\9end, delay),\
 \9\9\9resolveTime = os.clock() + delay,\
 \9\9}\
 \9\9clearUpdates(updates.current, update.resolveTime)\
+\9\9-- ▼ Map.set ▼\
 \9\9updates.current[id] = update\
+\9\9-- ▲ Map.set ▲\
 \9end, { value })\
 \9useEffect(function()\
 \9\9return function()\
@@ -1529,7 +1611,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-delayed-update")) setfenv(fn, newEnv("Havoc.hooks.common.use-delayed-update")) return fn() end)
 
-newModule("use-did-mount", "ModuleScript", "Havoc.hooks.common.use-did-mount", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-did-mount", "ModuleScript", "Havoc.hooks.common.use-did-mount", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useEffect = _roact_hooked.useEffect\
@@ -1556,7 +1638,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-did-mount")) setfenv(fn, newEnv("Havoc.hooks.common.use-did-mount")) return fn() end)
 
-newModule("use-forced-update", "ModuleScript", "Havoc.hooks.common.use-forced-update", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-forced-update", "ModuleScript", "Havoc.hooks.common.use-forced-update", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useCallback = _roact_hooked.useCallback\
@@ -1574,7 +1656,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-forced-update")) setfenv(fn, newEnv("Havoc.hooks.common.use-forced-update")) return fn() end)
 
-newModule("use-interval", "ModuleScript", "Havoc.hooks.common.use-interval", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-interval", "ModuleScript", "Havoc.hooks.common.use-interval", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local useEffect = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useEffect\
 local _timeout = TS.import(script, script.Parent.Parent.Parent, \"utils\", \"timeout\")\
@@ -1603,7 +1685,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-interval")) setfenv(fn, newEnv("Havoc.hooks.common.use-interval")) return fn() end)
 
-newModule("use-mouse-location", "ModuleScript", "Havoc.hooks.common.use-mouse-location", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-mouse-location", "ModuleScript", "Havoc.hooks.common.use-mouse-location", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useBinding = _roact_hooked.useBinding\
@@ -1632,7 +1714,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-mouse-location")) setfenv(fn, newEnv("Havoc.hooks.common.use-mouse-location")) return fn() end)
 
-newModule("use-promise", "ModuleScript", "Havoc.hooks.common.use-promise", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-promise", "ModuleScript", "Havoc.hooks.common.use-promise", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useEffect = _roact_hooked.useEffect\
@@ -1717,7 +1799,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-promise")) setfenv(fn, newEnv("Havoc.hooks.common.use-promise")) return fn() end)
 
-newModule("use-set-state", "ModuleScript", "Havoc.hooks.common.use-set-state", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-set-state", "ModuleScript", "Havoc.hooks.common.use-set-state", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
 local function useSetState(initialState)\
@@ -1730,8 +1812,16 @@ local function useSetState(initialState)\
 \9\9\9\9\9_object[_k] = _v\
 \9\9\9\9end\
 \9\9\9end\
-\9\9\9for _k, _v in pairs((if type(action) == \"function\" then action(s) else action)) do\
-\9\9\9\9_object[_k] = _v\
+\9\9\9local _result\
+\9\9\9if type(action) == \"function\" then\
+\9\9\9\9_result = action(s)\
+\9\9\9else\
+\9\9\9\9_result = action\
+\9\9\9end\
+\9\9\9if type(_result) == \"table\" then\
+\9\9\9\9for _k, _v in pairs(_result) do\
+\9\9\9\9\9_object[_k] = _v\
+\9\9\9\9end\
 \9\9\9end\
 \9\9\9return _object\
 \9\9end)\
@@ -1743,7 +1833,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-set-state")) setfenv(fn, newEnv("Havoc.hooks.common.use-set-state")) return fn() end)
 
-newModule("use-spring", "ModuleScript", "Havoc.hooks.common.use-spring", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-spring", "ModuleScript", "Havoc.hooks.common.use-spring", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Spring = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Spring\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
@@ -1807,7 +1897,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-spring")) setfenv(fn, newEnv("Havoc.hooks.common.use-spring")) return fn() end)
 
-newModule("use-viewport-size", "ModuleScript", "Havoc.hooks.common.use-viewport-size", "Havoc.hooks.common", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-viewport-size", "ModuleScript", "Havoc.hooks.common.use-viewport-size", "Havoc.hooks.common", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
 local useBinding = _roact_hooked.useBinding\
@@ -1851,7 +1941,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.common.use-viewport-size")) setfenv(fn, newEnv("Havoc.hooks.common.use-viewport-size")) return fn() end)
 
-newModule("use-current-page", "ModuleScript", "Havoc.hooks.use-current-page", "Havoc.hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-current-page", "ModuleScript", "Havoc.hooks.use-current-page", "Havoc.hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local useAppSelector = TS.import(script, script.Parent, \"common\", \"rodux-hooks\").useAppSelector\
 local function useCurrentPage()\
@@ -1870,7 +1960,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.use-current-page")) setfenv(fn, newEnv("Havoc.hooks.use-current-page")) return fn() end)
 
-newModule("use-friends", "ModuleScript", "Havoc.hooks.use-friends", "Havoc.hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-friends", "ModuleScript", "Havoc.hooks.use-friends", "Havoc.hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local useMemo = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useMemo\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -1890,7 +1980,7 @@ local function useFriendsPlaying(deps)\
 \9\9local _arg0 = function(friend)\
 \9\9\9return friend.PlaceId ~= nil and friend.GameId ~= nil\
 \9\9end\
-\9\9--▼ ReadonlyArray.filter ▼\
+\9\9-- ▼ ReadonlyArray.filter ▼\
 \9\9local _newValue = {}\
 \9\9local _length = 0\
 \9\9for _k, _v in ipairs(_friendsPlaying) do\
@@ -1899,7 +1989,7 @@ local function useFriendsPlaying(deps)\
 \9\9\9\9_newValue[_length] = _v\
 \9\9\9end\
 \9\9end\
-\9\9--▲ ReadonlyArray.filter ▲\
+\9\9-- ▲ ReadonlyArray.filter ▲\
 \9\9_friendsPlaying = _newValue\
 \9end\
 \9local friendsPlaying = _friendsPlaying\
@@ -1920,15 +2010,15 @@ local function useFriendActivity(deps)\
 \9\9local _arg0_1 = function(g)\
 \9\9\9return g.placeId == friend.PlaceId\
 \9\9end\
-\9\9--▼ ReadonlyArray.find ▼\
-\9\9local _result\
+\9\9-- ▼ ReadonlyArray.find ▼\
+\9\9local _result = nil\
 \9\9for _i, _v in ipairs(games) do\
 \9\9\9if _arg0_1(_v, _i - 1, games) == true then\
 \9\9\9\9_result = _v\
 \9\9\9\9break\
 \9\9\9end\
 \9\9end\
-\9\9--▲ ReadonlyArray.find ▲\
+\9\9-- ▲ ReadonlyArray.find ▲\
 \9\9local gameActivity = _result\
 \9\9if not gameActivity then\
 \9\9\9gameActivity = {\
@@ -1937,15 +2027,21 @@ local function useFriendActivity(deps)\
 \9\9\9\9thumbnail = \"https://www.roblox.com/asset-thumbnail/image?assetId=\" .. (tostring(friend.PlaceId) .. \"&width=768&height=432&format=png\"),\
 \9\9\9}\
 \9\9\9local _gameActivity = gameActivity\
-\9\9\9table.insert(games, _gameActivity)\
+\9\9\9-- ▼ Array.push ▼\
+\9\9\9games[#games + 1] = _gameActivity\
+\9\9\9-- ▲ Array.push ▲\
 \9\9else\
 \9\9\9local _friends = gameActivity.friends\
-\9\9\9table.insert(_friends, friend)\
+\9\9\9-- ▼ Array.push ▼\
+\9\9\9_friends[#_friends + 1] = friend\
+\9\9\9-- ▲ Array.push ▲\
 \9\9end\
 \9end\
+\9-- ▼ ReadonlyArray.forEach ▼\
 \9for _k, _v in ipairs(friends) do\
 \9\9_arg0(_v, _k - 1, friends)\
 \9end\
+\9-- ▲ ReadonlyArray.forEach ▲\
 \9return { games, err, status }\
 end\
 return {\
@@ -1955,7 +2051,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.use-friends")) setfenv(fn, newEnv("Havoc.hooks.use-friends")) return fn() end)
 
-newModule("use-parallax-offset", "ModuleScript", "Havoc.hooks.use-parallax-offset", "Havoc.hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-parallax-offset", "ModuleScript", "Havoc.hooks.use-parallax-offset", "Havoc.hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Spring = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src).Spring\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
@@ -1992,21 +2088,25 @@ return {\
 }\
 ", '@'.."Havoc.hooks.use-parallax-offset")) setfenv(fn, newEnv("Havoc.hooks.use-parallax-offset")) return fn() end)
 
-newModule("use-scale", "ModuleScript", "Havoc.hooks.use-scale", "Havoc.hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-scale", "ModuleScript", "Havoc.hooks.use-scale", "Havoc.hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useContext = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useContext\
 local ScaleContext = TS.import(script, script.Parent.Parent, \"context\", \"scale-context\").ScaleContext\
 local defaultScale = Roact.createBinding(1)\
 local function useScale()\
-\9return useContext(ScaleContext) or defaultScale\
+\9local _condition = useContext(ScaleContext)\
+\9if _condition == nil then\
+\9\9_condition = defaultScale\
+\9end\
+\9return _condition\
 end\
 return {\
 \9useScale = useScale,\
 }\
 ", '@'.."Havoc.hooks.use-scale")) setfenv(fn, newEnv("Havoc.hooks.use-scale")) return fn() end)
 
-newModule("use-theme", "ModuleScript", "Havoc.hooks.use-theme", "Havoc.hooks", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("use-theme", "ModuleScript", "Havoc.hooks.use-theme", "Havoc.hooks", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local useAppSelector = TS.import(script, script.Parent, \"common\", \"rodux-hooks\").useAppSelector\
 local getThemes = TS.import(script, script.Parent.Parent, \"themes\").getThemes\
@@ -2015,12 +2115,12 @@ local _exp = getThemes()\
 local _arg0 = function(t)\
 \9return { t.name, t }\
 end\
---▼ ReadonlyArray.map ▼\
+-- ▼ ReadonlyArray.map ▼\
 local _newValue = table.create(#_exp)\
 for _k, _v in ipairs(_exp) do\
 \9_newValue[_k] = _arg0(_v, _k - 1, _exp)\
 end\
---▲ ReadonlyArray.map ▲\
+-- ▲ ReadonlyArray.map ▲\
 local _map = {}\
 for _, _v in ipairs(_newValue) do\
 \9_map[_v[1]] = _v[2]\
@@ -2029,7 +2129,11 @@ local THEME_MAP = _map\
 local function useTheme(key)\
 \9return useAppSelector(function(state)\
 \9\9local themeName = state.options.currentTheme\
-\9\9local theme = THEME_MAP[themeName] or darkTheme\
+\9\9local _condition = THEME_MAP[themeName]\
+\9\9if _condition == nil then\
+\9\9\9_condition = darkTheme\
+\9\9end\
+\9\9local theme = _condition\
 \9\9return theme[key]\
 \9end)\
 end\
@@ -2038,7 +2142,7 @@ return {\
 }\
 ", '@'.."Havoc.hooks.use-theme")) setfenv(fn, newEnv("Havoc.hooks.use-theme")) return fn() end)
 
-newModule("jobs", "ModuleScript", "Havoc.jobs", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("jobs", "ModuleScript", "Havoc.jobs", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.setStore = TS.import(script, script, \"helpers\", \"job-store\").setStore\
@@ -2057,7 +2161,7 @@ TS.import(script, script, \"players\", \"teleport\")\
 return exports\
 ", '@'.."Havoc.jobs")) setfenv(fn, newEnv("Havoc.jobs")) return fn() end)
 
-newModule("acrylic", "ModuleScript", "Havoc.jobs.acrylic", "Havoc.jobs", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("acrylic", "ModuleScript", "Havoc.jobs.acrylic", "Havoc.jobs", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Make = TS.import(script, TS.getModule(script, \"@rbxts\", \"make\"))\
 local Lighting = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Lighting\
@@ -2088,7 +2192,9 @@ local main = TS.async(function()\
 \9\9\9local _arg1 = {\
 \9\9\9\9enabled = effect.Enabled,\
 \9\9\9}\
+\9\9\9-- ▼ Map.set ▼\
 \9\9\9depthOfFieldDefaults[effect] = _arg1\
+\9\9\9-- ▲ Map.set ▲\
 \9\9end\
 \9end\
 \9local timeout\
@@ -2117,7 +2223,7 @@ return nil\
 
 newInstance("character", "Folder", "Havoc.jobs.character", "Havoc.jobs")
 
-newModule("flight", "ModuleScript", "Havoc.jobs.character.flight", "Havoc.jobs.character", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("flight", "ModuleScript", "Havoc.jobs.character.flight", "Havoc.jobs.character", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _flipper = TS.import(script, TS.getModule(script, \"@rbxts\", \"flipper\").src)\
 local GroupMotor = _flipper.GroupMotor\
@@ -2206,7 +2312,7 @@ local function getUnitDirection()\
 \9for _, v3 in pairs(moveDirection) do\
 \9\9sum = sum + v3\
 \9end\
-\9return if sum.Magnitude > 0 then sum.Unit else sum\
+\9return sum.Magnitude > 0 and sum.Unit or sum\
 end\
 function resetCoordinate()\
 \9if not humanoidRoot then\
@@ -2249,27 +2355,27 @@ end\
 function updateDirection(code, begin)\
 \9repeat\
 \9\9if code == (Enum.KeyCode.W) then\
-\9\9\9moveDirection.forward = if begin then Vector3.new(0, 0, -1) else Vector3.new()\
+\9\9\9moveDirection.forward = begin and Vector3.new(0, 0, -1) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9\9if code == (Enum.KeyCode.S) then\
-\9\9\9moveDirection.backward = if begin then Vector3.new(0, 0, 1) else Vector3.new()\
+\9\9\9moveDirection.backward = begin and Vector3.new(0, 0, 1) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9\9if code == (Enum.KeyCode.A) then\
-\9\9\9moveDirection.left = if begin then Vector3.new(-1, 0, 0) else Vector3.new()\
+\9\9\9moveDirection.left = begin and Vector3.new(-1, 0, 0) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9\9if code == (Enum.KeyCode.D) then\
-\9\9\9moveDirection.right = if begin then Vector3.new(1, 0, 0) else Vector3.new()\
+\9\9\9moveDirection.right = begin and Vector3.new(1, 0, 0) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9\9if code == (Enum.KeyCode.Q) then\
-\9\9\9moveDirection.up = if begin then Vector3.new(0, -1, 0) else Vector3.new()\
+\9\9\9moveDirection.up = begin and Vector3.new(0, -1, 0) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9\9if code == (Enum.KeyCode.E) then\
-\9\9\9moveDirection.down = if begin then Vector3.new(0, 1, 0) else Vector3.new()\
+\9\9\9moveDirection.down = begin and Vector3.new(0, 1, 0) or Vector3.new()\
 \9\9\9break\
 \9\9end\
 \9until true\
@@ -2280,7 +2386,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.character.flight")) setfenv(fn, newEnv("Havoc.jobs.character.flight")) return fn() end)
 
-newModule("ghost", "ModuleScript", "Havoc.jobs.character.ghost", "Havoc.jobs.character", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ghost", "ModuleScript", "Havoc.jobs.character.ghost", "Havoc.jobs.character", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local Players = _services.Players\
@@ -2298,7 +2404,9 @@ local function disableResetOnSpawn()\
 \9if playerGui then\
 \9\9for _, object in ipairs(playerGui:GetChildren()) do\
 \9\9\9if object:IsA(\"ScreenGui\") and object.ResetOnSpawn then\
-\9\9\9\9table.insert(screenGuisWithResetOnSpawn, object)\
+\9\9\9\9-- ▼ Array.push ▼\
+\9\9\9\9screenGuisWithResetOnSpawn[#screenGuisWithResetOnSpawn + 1] = object\
+\9\9\9\9-- ▲ Array.push ▲\
 \9\9\9\9object.ResetOnSpawn = false\
 \9\9\9end\
 \9\9end\
@@ -2308,7 +2416,9 @@ local function enableResetOnSpawn()\
 \9for _, screenGui in ipairs(screenGuisWithResetOnSpawn) do\
 \9\9screenGui.ResetOnSpawn = true\
 \9end\
+\9-- ▼ Array.clear ▼\
 \9table.clear(screenGuisWithResetOnSpawn)\
+\9-- ▲ Array.clear ▲\
 end\
 local deactivate, activateGhost, deactivateOnCharacterAdded, deactivateGhost\
 local main = TS.async(function()\
@@ -2359,7 +2469,7 @@ activateGhost = TS.async(function()\
 \9if _result ~= nil then\
 \9\9_result = _result:IsA(\"BasePart\")\
 \9end\
-\9lastPosition = if _result then rootPart.CFrame else nil\
+\9lastPosition = _result and rootPart.CFrame or nil\
 \9originalCharacter = character\
 \9local ghostHumanoid = ghostCharacter:FindFirstChildWhichIsA(\"Humanoid\")\
 \9for _, child in ipairs(ghostCharacter:GetDescendants()) do\
@@ -2403,7 +2513,7 @@ deactivateGhost = TS.async(function()\
 \9if _result ~= nil then\
 \9\9_result = _result:IsA(\"BasePart\")\
 \9end\
-\9local currentPosition = if _result then ghostRootPart.CFrame else nil\
+\9local currentPosition = _result and ghostRootPart.CFrame or nil\
 \9local animation = ghostCharacter:FindFirstChild(\"Animate\")\
 \9if animation then\
 \9\9animation.Disabled = true\
@@ -2417,9 +2527,11 @@ deactivateGhost = TS.async(function()\
 \9\9local _arg0 = function(track)\
 \9\9\9return track:Stop()\
 \9\9end\
+\9\9-- ▼ ReadonlyArray.forEach ▼\
 \9\9for _k, _v in ipairs(_exp) do\
 \9\9\9_arg0(_v, _k - 1, _exp)\
 \9\9end\
+\9\9-- ▲ ReadonlyArray.forEach ▲\
 \9end\
 \9local position = currentPosition or lastPosition\
 \9local _result_2 = rootPart\
@@ -2451,7 +2563,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.character.ghost")) setfenv(fn, newEnv("Havoc.jobs.character.ghost")) return fn() end)
 
-newModule("godmode", "ModuleScript", "Havoc.jobs.character.godmode", "Havoc.jobs.character", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("godmode", "ModuleScript", "Havoc.jobs.character.godmode", "Havoc.jobs.character", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local Players = _services.Players\
@@ -2530,7 +2642,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.character.godmode")) setfenv(fn, newEnv("Havoc.jobs.character.godmode")) return fn() end)
 
-newModule("humanoid", "ModuleScript", "Havoc.jobs.character.humanoid", "Havoc.jobs.character", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("humanoid", "ModuleScript", "Havoc.jobs.character.humanoid", "Havoc.jobs.character", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
 local _job_store = TS.import(script, script.Parent.Parent, \"helpers\", \"job-store\")\
@@ -2626,7 +2738,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.character.humanoid")) setfenv(fn, newEnv("Havoc.jobs.character.humanoid")) return fn() end)
 
-newModule("refresh", "ModuleScript", "Havoc.jobs.character.refresh", "Havoc.jobs.character", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("refresh", "ModuleScript", "Havoc.jobs.character.refresh", "Havoc.jobs.character", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local Players = _services.Players\
@@ -2695,7 +2807,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.character.refresh")) setfenv(fn, newEnv("Havoc.jobs.character.refresh")) return fn() end)
 
-newModule("freecam", "ModuleScript", "Havoc.jobs.freecam", "Havoc.jobs", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("freecam", "ModuleScript", "Havoc.jobs.freecam", "Havoc.jobs", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local _freecam = TS.import(script, script.Parent, \"helpers\", \"freecam\")\
 local DisableFreecam = _freecam.DisableFreecam\
@@ -3177,7 +3289,7 @@ return {\
 }\
 ", '@'.."Havoc.jobs.helpers.freecam")) setfenv(fn, newEnv("Havoc.jobs.helpers.freecam")) return fn() end)
 
-newModule("get-selected-player", "ModuleScript", "Havoc.jobs.helpers.get-selected-player", "Havoc.jobs.helpers", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("get-selected-player", "ModuleScript", "Havoc.jobs.helpers.get-selected-player", "Havoc.jobs.helpers", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
 local getStore = TS.import(script, script.Parent, \"job-store\").getStore\
@@ -3193,7 +3305,7 @@ local getSelectedPlayer = TS.async(function(onChange)\
 \9\9\9_result = _result.Name\
 \9\9end\
 \9\9if _result ~= name then\
-\9\9\9playerSelected.current = if name ~= nil then (Players:FindFirstChild(name)) else nil\
+\9\9\9playerSelected.current = name ~= nil and (Players:FindFirstChild(name)) or nil\
 \9\9\9if onChange then\
 \9\9\9\9task.defer(onChange, playerSelected.current)\
 \9\9\9end\
@@ -3206,7 +3318,7 @@ return {\
 }\
 ", '@'.."Havoc.jobs.helpers.get-selected-player")) setfenv(fn, newEnv("Havoc.jobs.helpers.get-selected-player")) return fn() end)
 
-newModule("job-store", "ModuleScript", "Havoc.jobs.helpers.job-store", "Havoc.jobs.helpers", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("job-store", "ModuleScript", "Havoc.jobs.helpers.job-store", "Havoc.jobs.helpers", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local setInterval = TS.import(script, script.Parent.Parent.Parent, \"utils\", \"timeout\").setInterval\
 local store = {}\
@@ -3262,7 +3374,7 @@ return {\
 
 newInstance("players", "Folder", "Havoc.jobs.players", "Havoc.jobs")
 
-newModule("hide", "ModuleScript", "Havoc.jobs.players.hide", "Havoc.jobs.players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("hide", "ModuleScript", "Havoc.jobs.players.hide", "Havoc.jobs.players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
 local getSelectedPlayer = TS.import(script, script.Parent.Parent, \"helpers\", \"get-selected-player\").getSelectedPlayer\
@@ -3285,7 +3397,9 @@ local function hide(player)\
 \9\9\9data.character = character\
 \9\9end),\
 \9}\
+\9-- ▼ Map.set ▼\
 \9current[player] = data\
+\9-- ▲ Map.set ▲\
 \9character.Parent = nil\
 end\
 local function unhide(player, setParent)\
@@ -3297,12 +3411,21 @@ local function unhide(player, setParent)\
 \9\9data.character.Parent = data.parent\
 \9end\
 \9data.handle:Disconnect()\
+\9-- ▼ Map.delete ▼\
 \9current[player] = nil\
+\9-- ▲ Map.delete ▲\
 end\
 local main = TS.async(function()\
 \9local store = TS.await(getStore())\
 \9local playerSelected = TS.await(getSelectedPlayer(function(player)\
-\9\9store:dispatch(setJobActive(\"hide\", if player then current[player] ~= nil else false))\
+\9\9local _fn = store\
+\9\9local _result\
+\9\9if player then\
+\9\9\9_result = current[player] ~= nil\
+\9\9else\
+\9\9\9_result = false\
+\9\9end\
+\9\9_fn:dispatch(setJobActive(\"hide\", _result))\
 \9end))\
 \9Players.PlayerRemoving:Connect(function(player)\
 \9\9if player == playerSelected.current then\
@@ -3330,7 +3453,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.players.hide")) setfenv(fn, newEnv("Havoc.jobs.players.hide")) return fn() end)
 
-newModule("kill", "ModuleScript", "Havoc.jobs.players.kill", "Havoc.jobs.players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("kill", "ModuleScript", "Havoc.jobs.players.kill", "Havoc.jobs.players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local Players = _services.Players\
@@ -3368,15 +3491,15 @@ local attachToVictim = TS.async(function(victim)\
 \9local _arg0 = function(obj)\
 \9\9return obj:IsA(\"Tool\") and obj:FindFirstChild(\"Handle\") ~= nil\
 \9end\
-\9--▼ ReadonlyArray.find ▼\
-\9local _result\
+\9-- ▼ ReadonlyArray.find ▼\
+\9local _result = nil\
 \9for _i, _v in ipairs(_array) do\
 \9\9if _arg0(_v, _i - 1, _array) == true then\
 \9\9\9_result = _v\
 \9\9\9break\
 \9\9end\
 \9end\
-\9--▲ ReadonlyArray.find ▲\
+\9-- ▲ ReadonlyArray.find ▲\
 \9local tool = _result\
 \9if not tool then\
 \9\9error(\"A tool with a handle is required to kill this victim\")\
@@ -3425,7 +3548,7 @@ local bringVictimToVoid = TS.async(function(victim)\
 \9if _result ~= nil then\
 \9\9_result = _result:IsA(\"BasePart\")\
 \9end\
-\9local location = if _result then oldRootPart.CFrame else nil\
+\9local location = _result and oldRootPart.CFrame or nil\
 \9store:dispatch(setJobActive(\"refresh\", true))\
 \9TS.await(TS.Promise.fromEvent(player.CharacterAdded, function(character)\
 \9\9return character:WaitForChild(\"HumanoidRootPart\", 5) ~= nil\
@@ -3483,7 +3606,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.players.kill")) setfenv(fn, newEnv("Havoc.jobs.players.kill")) return fn() end)
 
-newModule("spectate", "ModuleScript", "Havoc.jobs.players.spectate", "Havoc.jobs.players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("spectate", "ModuleScript", "Havoc.jobs.players.spectate", "Havoc.jobs.players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Workspace = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Workspace\
 local getSelectedPlayer = TS.import(script, script.Parent.Parent, \"helpers\", \"get-selected-player\").getSelectedPlayer\
@@ -3544,7 +3667,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.players.spectate")) setfenv(fn, newEnv("Havoc.jobs.players.spectate")) return fn() end)
 
-newModule("teleport", "ModuleScript", "Havoc.jobs.players.teleport", "Havoc.jobs.players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("teleport", "ModuleScript", "Havoc.jobs.players.teleport", "Havoc.jobs.players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
 local getSelectedPlayer = TS.import(script, script.Parent.Parent, \"helpers\", \"get-selected-player\").getSelectedPlayer\
@@ -3599,7 +3722,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.players.teleport")) setfenv(fn, newEnv("Havoc.jobs.players.teleport")) return fn() end)
 
-newModule("server", "ModuleScript", "Havoc.jobs.server", "Havoc.jobs", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("server", "ModuleScript", "Havoc.jobs.server", "Havoc.jobs", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local HttpService = _services.HttpService\
@@ -3620,7 +3743,7 @@ local onServerHop = TS.async(function()\
 \9local _arg0 = function(server)\
 \9\9return server.playing < server.maxPlayers and server.id ~= game.JobId\
 \9end\
-\9--▼ ReadonlyArray.filter ▼\
+\9-- ▼ ReadonlyArray.filter ▼\
 \9local _newValue = {}\
 \9local _length = 0\
 \9for _k, _v in ipairs(_data) do\
@@ -3629,7 +3752,7 @@ local onServerHop = TS.async(function()\
 \9\9\9_newValue[_length] = _v\
 \9\9end\
 \9end\
-\9--▲ ReadonlyArray.filter ▲\
+\9-- ▲ ReadonlyArray.filter ▲\
 \9local serversAvailable = _newValue\
 \9if #serversAvailable == 0 then\
 \9\9error(\"[server-worker-switch] No servers available.\")\
@@ -3706,7 +3829,7 @@ end)\
 return nil\
 ", '@'.."Havoc.jobs.server")) setfenv(fn, newEnv("Havoc.jobs.server")) return fn() end)
 
-newModule("main", "LocalScript", "Havoc.main", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("main", "LocalScript", "Havoc.main", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.include.RuntimeLib)\
 local Make = TS.import(script, TS.getModule(script, \"@rbxts\", \"make\"))\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
@@ -3733,7 +3856,7 @@ local mount = TS.async(function()\
 \9return container:WaitForChild(1)\
 end)\
 local function render(app)\
-\9local protect = if syn then syn.protect_gui else protect_gui\
+\9local protect = syn and syn.protect_gui or protect_gui\
 \9if protect then\
 \9\9protect(app)\
 \9end\
@@ -3746,7 +3869,7 @@ local function render(app)\
 \9end\
 end\
 local main = TS.async(function()\
-\9local g = if getgenv then getgenv() else _G\
+\9local g = getgenv and getgenv() or _G\
 \9if g[LOAD_GUARD] == true then\
 \9\9error(\"Havoc is already loaded!\")\
 \9end\
@@ -3771,7 +3894,7 @@ newInstance("store", "Folder", "Havoc.store", "Havoc")
 
 newInstance("actions", "Folder", "Havoc.store.actions", "Havoc.store")
 
-newModule("dashboard.action", "ModuleScript", "Havoc.store.actions.dashboard.action", "Havoc.store.actions", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("dashboard.action", "ModuleScript", "Havoc.store.actions.dashboard.action", "Havoc.store.actions", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local setDashboardPage = Rodux.makeActionCreator(\"dashboard/setDashboardPage\", function(page)\
@@ -3808,7 +3931,7 @@ return {\
 }\
 ", '@'.."Havoc.store.actions.dashboard.action")) setfenv(fn, newEnv("Havoc.store.actions.dashboard.action")) return fn() end)
 
-newModule("jobs.action", "ModuleScript", "Havoc.store.actions.jobs.action", "Havoc.store.actions", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("jobs.action", "ModuleScript", "Havoc.store.actions.jobs.action", "Havoc.store.actions", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local setJobActive = Rodux.makeActionCreator(\"jobs/setJobActive\", function(jobName, active)\
@@ -3837,7 +3960,7 @@ return {\
 }\
 ", '@'.."Havoc.store.actions.jobs.action")) setfenv(fn, newEnv("Havoc.store.actions.jobs.action")) return fn() end)
 
-newModule("options.action", "ModuleScript", "Havoc.store.actions.options.action", "Havoc.store.actions", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("options.action", "ModuleScript", "Havoc.store.actions.options.action", "Havoc.store.actions", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local setConfig = Rodux.makeActionCreator(\"options/setConfig\", function(name, active)\
@@ -3872,7 +3995,7 @@ return {\
 
 newInstance("models", "Folder", "Havoc.store.models", "Havoc.store")
 
-newModule("dashboard.model", "ModuleScript", "Havoc.store.models.dashboard.model", "Havoc.store.models", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("dashboard.model", "ModuleScript", "Havoc.store.models.dashboard.model", "Havoc.store.models", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local DashboardPage\
 do\
 \9local _inverse = {}\
@@ -3911,13 +4034,13 @@ return {\
 }\
 ", '@'.."Havoc.store.models.dashboard.model")) setfenv(fn, newEnv("Havoc.store.models.dashboard.model")) return fn() end)
 
-newModule("jobs.model", "ModuleScript", "Havoc.store.models.jobs.model", "Havoc.store.models", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("jobs.model", "ModuleScript", "Havoc.store.models.jobs.model", "Havoc.store.models", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 ", '@'.."Havoc.store.models.jobs.model")) setfenv(fn, newEnv("Havoc.store.models.jobs.model")) return fn() end)
 
-newModule("options.model", "ModuleScript", "Havoc.store.models.options.model", "Havoc.store.models", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("options.model", "ModuleScript", "Havoc.store.models.options.model", "Havoc.store.models", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 ", '@'.."Havoc.store.models.options.model")) setfenv(fn, newEnv("Havoc.store.models.options.model")) return fn() end)
 
-newModule("persistent-state", "ModuleScript", "Havoc.store.persistent-state", "Havoc.store", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("persistent-state", "ModuleScript", "Havoc.store.persistent-state", "Havoc.store", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local _services = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\"))\
 local HttpService = _services.HttpService\
@@ -3982,7 +4105,7 @@ return {\
 
 newInstance("reducers", "Folder", "Havoc.store.reducers", "Havoc.store")
 
-newModule("dashboard.reducer", "ModuleScript", "Havoc.store.reducers.dashboard.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("dashboard.reducer", "ModuleScript", "Havoc.store.reducers.dashboard.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local DashboardPage = TS.import(script, script.Parent.Parent, \"models\", \"dashboard.model\").DashboardPage\
@@ -4061,7 +4184,7 @@ return {\
 }\
 ", '@'.."Havoc.store.reducers.dashboard.reducer")) setfenv(fn, newEnv("Havoc.store.reducers.dashboard.reducer")) return fn() end)
 
-newModule("jobs.reducer", "ModuleScript", "Havoc.store.reducers.jobs.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("jobs.reducer", "ModuleScript", "Havoc.store.reducers.jobs.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local initialState = {\
@@ -4168,7 +4291,7 @@ return {\
 }\
 ", '@'.."Havoc.store.reducers.jobs.reducer")) setfenv(fn, newEnv("Havoc.store.reducers.jobs.reducer")) return fn() end)
 
-newModule("options.reducer", "ModuleScript", "Havoc.store.reducers.options.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("options.reducer", "ModuleScript", "Havoc.store.reducers.options.reducer", "Havoc.store.reducers", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local persistentState = TS.import(script, script.Parent.Parent, \"persistent-state\").persistentState\
@@ -4240,7 +4363,7 @@ return {\
 }\
 ", '@'.."Havoc.store.reducers.options.reducer")) setfenv(fn, newEnv("Havoc.store.reducers.options.reducer")) return fn() end)
 
-newModule("store", "ModuleScript", "Havoc.store.store", "Havoc.store", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("store", "ModuleScript", "Havoc.store.store", "Havoc.store", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Rodux = TS.import(script, TS.getModule(script, \"@rbxts\", \"rodux\").src)\
 local dashboardReducer = TS.import(script, script.Parent, \"reducers\", \"dashboard.reducer\").dashboardReducer\
@@ -4259,7 +4382,7 @@ return {\
 }\
 ", '@'.."Havoc.store.store")) setfenv(fn, newEnv("Havoc.store.store")) return fn() end)
 
-newModule("theme", "ModuleScript", "Havoc.theme", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("theme", "ModuleScript", "Havoc.theme", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local UI_COLORS = {\
 \9Accent = Color3.fromRGB(235, 76, 105),\
 \9AccentDark = Color3.fromRGB(150, 40, 60),\
@@ -4291,7 +4414,7 @@ return {\
 }\
 ", '@'.."Havoc.theme")) setfenv(fn, newEnv("Havoc.theme")) return fn() end)
 
-newModule("themes", "ModuleScript", "Havoc.themes", "Havoc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("themes", "ModuleScript", "Havoc.themes", "Havoc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script, \"sorbet\").darkTheme\
 local frostedGlass = TS.import(script, script, \"frosted-glass\").frostedGlass\
@@ -4303,7 +4426,7 @@ local _exp = { crimson, darkTheme, lightTheme, frostedGlass, obsidian, highContr
 local _arg0 = function(t)\
 \9return t ~= nil\
 end\
---▼ ReadonlyArray.filter ▼\
+-- ▼ ReadonlyArray.filter ▼\
 local _newValue = {}\
 local _length = 0\
 for _k, _v in ipairs(_exp) do\
@@ -4312,21 +4435,29 @@ for _k, _v in ipairs(_exp) do\
 \9\9_newValue[_length] = _v\
 \9end\
 end\
---▲ ReadonlyArray.filter ▲\
+-- ▲ ReadonlyArray.filter ▲\
 local themeList = _newValue\
 local themeMap = {}\
 local _arg0_1 = function(theme)\
 \9local _name = theme.name\
+\9-- ▼ Map.set ▼\
 \9themeMap[_name] = theme\
+\9-- ▲ Map.set ▲\
 end\
+-- ▼ ReadonlyArray.forEach ▼\
 for _k, _v in ipairs(themeList) do\
 \9_arg0_1(_v, _k - 1, themeList)\
 end\
+-- ▲ ReadonlyArray.forEach ▲\
 local function getThemes()\
 \9return themeList\
 end\
 local function getThemeByName(name)\
-\9return themeMap[name] or darkTheme\
+\9local _condition = themeMap[name]\
+\9if _condition == nil then\
+\9\9_condition = darkTheme\
+\9end\
+\9return _condition\
 end\
 return {\
 \9getThemes = getThemes,\
@@ -4335,7 +4466,7 @@ return {\
 }\
 ", '@'.."Havoc.themes")) setfenv(fn, newEnv("Havoc.themes")) return fn() end)
 
-newModule("crimson", "ModuleScript", "Havoc.themes.crimson", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("crimson", "ModuleScript", "Havoc.themes.crimson", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script.Parent, \"sorbet\").darkTheme\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
@@ -4609,7 +4740,7 @@ return {\
 }\
 ", '@'.."Havoc.themes.crimson")) setfenv(fn, newEnv("Havoc.themes.crimson")) return fn() end)
 
-newModule("frosted-glass", "ModuleScript", "Havoc.themes.frosted-glass", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("frosted-glass", "ModuleScript", "Havoc.themes.frosted-glass", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script.Parent, \"sorbet\").darkTheme\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
@@ -4898,7 +5029,7 @@ return {\
 }\
 ", '@'.."Havoc.themes.frosted-glass")) setfenv(fn, newEnv("Havoc.themes.frosted-glass")) return fn() end)
 
-newModule("high-contrast", "ModuleScript", "Havoc.themes.high-contrast", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("high-contrast", "ModuleScript", "Havoc.themes.high-contrast", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script.Parent, \"sorbet\").darkTheme\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
@@ -5138,7 +5269,7 @@ return {\
 }\
 ", '@'.."Havoc.themes.high-contrast")) setfenv(fn, newEnv("Havoc.themes.high-contrast")) return fn() end)
 
-newModule("light-theme", "ModuleScript", "Havoc.themes.light-theme", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("light-theme", "ModuleScript", "Havoc.themes.light-theme", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script.Parent, \"sorbet\").darkTheme\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
@@ -5371,7 +5502,7 @@ return {\
 }\
 ", '@'.."Havoc.themes.light-theme")) setfenv(fn, newEnv("Havoc.themes.light-theme")) return fn() end)
 
-newModule("obsidian", "ModuleScript", "Havoc.themes.obsidian", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("obsidian", "ModuleScript", "Havoc.themes.obsidian", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local darkTheme = TS.import(script, script.Parent, \"sorbet\").darkTheme\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
@@ -5691,7 +5822,7 @@ return {\
 }\
 ", '@'.."Havoc.themes.obsidian")) setfenv(fn, newEnv("Havoc.themes.obsidian")) return fn() end)
 
-newModule("sorbet", "ModuleScript", "Havoc.themes.sorbet", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("sorbet", "ModuleScript", "Havoc.themes.sorbet", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local hex = TS.import(script, script.Parent.Parent, \"utils\", \"color3\").hex\
 local redAccent = hex(\"#C6428E\")\
@@ -5942,19 +6073,19 @@ return {\
 }\
 ", '@'.."Havoc.themes.sorbet")) setfenv(fn, newEnv("Havoc.themes.sorbet")) return fn() end)
 
-newModule("theme.interface", "ModuleScript", "Havoc.themes.theme.interface", "Havoc.themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("theme.interface", "ModuleScript", "Havoc.themes.theme.interface", "Havoc.themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 ", '@'.."Havoc.themes.theme.interface")) setfenv(fn, newEnv("Havoc.themes.theme.interface")) return fn() end)
 
 newInstance("utils", "Folder", "Havoc.utils", "Havoc")
 
-newModule("array-util", "ModuleScript", "Havoc.utils.array-util", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("array-util", "ModuleScript", "Havoc.utils.array-util", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local function arrayToMap(arr, mapper)\
-\9--▼ ReadonlyArray.map ▼\
+\9-- ▼ ReadonlyArray.map ▼\
 \9local _newValue = table.create(#arr)\
 \9for _k, _v in ipairs(arr) do\
 \9\9_newValue[_k] = mapper(_v, _k - 1, arr)\
 \9end\
-\9--▲ ReadonlyArray.map ▲\
+\9-- ▲ ReadonlyArray.map ▲\
 \9local _map = {}\
 \9for _, _v in ipairs(_newValue) do\
 \9\9_map[_v[1]] = _v[2]\
@@ -5966,17 +6097,17 @@ return {\
 }\
 ", '@'.."Havoc.utils.array-util")) setfenv(fn, newEnv("Havoc.utils.array-util")) return fn() end)
 
-newModule("binding-util", "ModuleScript", "Havoc.utils.binding-util", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("binding-util", "ModuleScript", "Havoc.utils.binding-util", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local function isBinding(binding)\
 \9return type(binding) == \"table\" and binding.getValue ~= nil\
 end\
 local function mapBinding(value, transform)\
-\9return if isBinding(value) then value:map(transform) else (Roact.createBinding(transform(value)))\
+\9return isBinding(value) and value:map(transform) or (Roact.createBinding(transform(value)))\
 end\
 local function asBinding(value)\
-\9return if isBinding(value) then value else (Roact.createBinding(value))\
+\9return isBinding(value) and value or (Roact.createBinding(value))\
 end\
 return {\
 \9isBinding = isBinding,\
@@ -5985,7 +6116,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.binding-util")) setfenv(fn, newEnv("Havoc.utils.binding-util")) return fn() end)
 
-newModule("color3", "ModuleScript", "Havoc.utils.color3", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("color3", "ModuleScript", "Havoc.utils.color3", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local function getLuminance(color)\
 \9if typeof(color) == \"ColorSequence\" then\
 \9\9color = color.Keypoints[1].Value\
@@ -5995,8 +6126,16 @@ end\
 local function getColorInSequence(sequence, alpha)\
 \9local index = math.floor(alpha * (#sequence.Keypoints - 1))\
 \9local nextIndex = math.min(index + 1, #sequence.Keypoints - 1)\
-\9local keypoint = sequence.Keypoints[index + 1] or sequence.Keypoints[1]\
-\9local nextKeypoint = sequence.Keypoints[nextIndex + 1] or keypoint\
+\9local _condition = sequence.Keypoints[index + 1]\
+\9if _condition == nil then\
+\9\9_condition = sequence.Keypoints[1]\
+\9end\
+\9local keypoint = _condition\
+\9local _condition_1 = sequence.Keypoints[nextIndex + 1]\
+\9if _condition_1 == nil then\
+\9\9_condition_1 = keypoint\
+\9end\
+\9local nextKeypoint = _condition_1\
 \9return keypoint.Value:Lerp(nextKeypoint.Value, alpha * (#sequence.Keypoints - 1) - index)\
 end\
 local hexStringToInt = function(hex)\
@@ -6020,8 +6159,8 @@ local hsv = function(h, s, v)\
 \9return Color3.fromHSV(h / 360, s / 100, v / 100)\
 end\
 local hsl = function(h, s, l)\
-\9local hsv1 = (s * (if l < 50 then l else 100 - l)) / 100\
-\9local hsvS = if hsv1 == 0 then 0 else ((2 * hsv1) / (l + hsv1)) * 100\
+\9local hsv1 = (s * (l < 50 and l or 100 - l)) / 100\
+\9local hsvS = hsv1 == 0 and 0 or ((2 * hsv1) / (l + hsv1)) * 100\
 \9local hsvV = l + hsv1\
 \9return Color3.fromHSV(h / 255, hsvS / 100, hsvV / 100)\
 end\
@@ -6035,7 +6174,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.color3")) setfenv(fn, newEnv("Havoc.utils.color3")) return fn() end)
 
-newModule("debug", "ModuleScript", "Havoc.utils.debug", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("debug", "ModuleScript", "Havoc.utils.debug", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local clock = os.clock()\
 local clockName = \"clock\"\
 local debugCounter = {}\
@@ -6063,7 +6202,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.debug")) setfenv(fn, newEnv("Havoc.utils.debug")) return fn() end)
 
-newModule("http", "ModuleScript", "Havoc.utils.http", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("http", "ModuleScript", "Havoc.utils.http", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local HttpService = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).HttpService\
 local IS_DEV = TS.import(script, script.Parent.Parent, \"constants\").IS_DEV\
@@ -6072,7 +6211,7 @@ request = TS.async(function(requestOptions)\
 \9if IS_DEV then\
 \9\9return HttpService:RequestAsync(requestOptions)\
 \9else\
-\9\9local fn = if syn then syn.request else request\
+\9\9local fn = syn and syn.request or request\
 \9\9if not fn then\
 \9\9\9error(\"request/syn.request is not available\")\
 \9\9end\
@@ -6092,7 +6231,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.http")) setfenv(fn, newEnv("Havoc.utils.http")) return fn() end)
 
-newModule("number-util", "ModuleScript", "Havoc.utils.number-util", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("number-util", "ModuleScript", "Havoc.utils.number-util", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local function map(n, min0, max0, min1, max1)\
 \9return min1 + ((n - min0) * (max1 - min1)) / (max0 - min0)\
 end\
@@ -6105,7 +6244,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.number-util")) setfenv(fn, newEnv("Havoc.utils.number-util")) return fn() end)
 
-newModule("timeout", "ModuleScript", "Havoc.utils.timeout", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("timeout", "ModuleScript", "Havoc.utils.timeout", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local RunService = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).RunService\
 local Timeout\
@@ -6190,7 +6329,7 @@ return {\
 }\
 ", '@'.."Havoc.utils.timeout")) setfenv(fn, newEnv("Havoc.utils.timeout")) return fn() end)
 
-newModule("udim2", "ModuleScript", "Havoc.utils.udim2", "Havoc.utils", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("udim2", "ModuleScript", "Havoc.utils.udim2", "Havoc.utils", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local function px(x, y)\
 \9return UDim2.new(0, x, 0, y)\
 end\
@@ -6212,14 +6351,14 @@ return {\
 
 newInstance("views", "Folder", "Havoc.views", "Havoc")
 
-newModule("Clock", "ModuleScript", "Havoc.views.Clock", "Havoc.views", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Clock", "ModuleScript", "Havoc.views.Clock", "Havoc.views", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Clock\").default\
 return exports\
 ", '@'.."Havoc.views.Clock")) setfenv(fn, newEnv("Havoc.views.Clock")) return fn() end)
 
-newModule("Clock", "ModuleScript", "Havoc.views.Clock.Clock", "Havoc.views.Clock", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Clock", "ModuleScript", "Havoc.views.Clock.Clock", "Havoc.views.Clock", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -6263,7 +6402,7 @@ local function Clock()\
 \9local _attributes = {}\
 \9local _arg0 = px(textWidth.X + CLOCK_PADDING, 0)\
 \9_attributes.Size = MIN_CLOCK_SIZE + _arg0\
-\9_attributes.Position = useSpring(if isOpen then UDim2.new(0, 0, 1, 0) else UDim2.new(0, 0, 1, 48 + 56 + 20), {})\
+\9_attributes.Position = useSpring(isOpen and UDim2.new(0, 0, 1, 0) or UDim2.new(0, 0, 1, 48 + 56 + 20), {})\
 \9_attributes.AnchorPoint = Vector2.new(0, 1)\
 \9_attributes.BackgroundTransparency = 1\
 \9local _children = {\
@@ -6291,7 +6430,13 @@ local function Clock()\
 \9\9}),\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"ImageLabel\", {\
@@ -6314,7 +6459,13 @@ local function Clock()\
 \9})\
 \9local _child_1 = theme.acrylic and Roact.createElement(Acrylic)\
 \9if _child_1 then\
-\9\9_children[_length + 3] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 3] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + 2 + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9return Roact.createElement(\"Frame\", _attributes, _children)\
 end\
@@ -6324,14 +6475,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Clock.Clock")) setfenv(fn, newEnv("Havoc.views.Clock.Clock")) return fn() end)
 
-newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard", "Havoc.views", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard", "Havoc.views", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Dashboard\").default\
 return exports\
 ", '@'.."Havoc.views.Dashboard")) setfenv(fn, newEnv("Havoc.views.Dashboard")) return fn() end)
 
-newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard.Dashboard", "Havoc.views.Dashboard", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Dashboard", "ModuleScript", "Havoc.views.Dashboard.Dashboard", "Havoc.views.Dashboard", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useMemo = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useMemo\
@@ -6387,7 +6538,7 @@ local function Dashboard()\
 \9\9Roact.createElement(\"Frame\", {\
 \9\9\9Size = scale(1, 1),\
 \9\9\9BackgroundColor3 = hex(\"#000000\"),\
-\9\9\9BackgroundTransparency = useSpring(if isOpen then 0 else 1, {}),\
+\9\9\9BackgroundTransparency = useSpring(isOpen and 0 or 1, {}),\
 \9\9\9BorderSizePixel = 0,\
 \9\9}, {\
 \9\9\9Roact.createElement(\"UIGradient\", {\
@@ -6421,14 +6572,14 @@ end\
 return Dashboard\
 ", '@'.."Havoc.views.Dashboard.Dashboard")) setfenv(fn, newEnv("Havoc.views.Dashboard.Dashboard")) return fn() end)
 
-newModule("Hint", "ModuleScript", "Havoc.views.Hint", "Havoc.views", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Hint", "ModuleScript", "Havoc.views.Hint", "Havoc.views", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Hint\").default\
 return exports\
 ", '@'.."Havoc.views.Hint")) setfenv(fn, newEnv("Havoc.views.Hint")) return fn() end)
 
-newModule("Hint", "ModuleScript", "Havoc.views.Hint.Hint", "Havoc.views.Hint", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Hint", "ModuleScript", "Havoc.views.Hint.Hint", "Havoc.views.Hint", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -6467,11 +6618,11 @@ local function Hint()\
 \9\9TextXAlignment = \"Right\",\
 \9\9TextYAlignment = \"Bottom\",\
 \9\9TextColor3 = hex(\"#FFFFFF\"),\
-\9\9TextTransparency = useSpring(if isHintVisible then 0.4 else 1, {}),\
+\9\9TextTransparency = useSpring(isHintVisible and 0.4 or 1, {}),\
 \9\9Font = \"GothamSemibold\",\
 \9\9TextSize = 18,\
 \9\9BackgroundTransparency = 1,\
-\9\9Position = useSpring(if isHintVisible then scale(1, 1) else UDim2.new(1, 0, 1, 48), {}),\
+\9\9Position = useSpring(isHintVisible and scale(1, 1) or UDim2.new(1, 0, 1, 48), {}),\
 \9}, {\
 \9\9Roact.createElement(\"UIScale\", {\
 \9\9\9Scale = scaleFactor,\
@@ -6484,14 +6635,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Hint.Hint")) setfenv(fn, newEnv("Havoc.views.Hint.Hint")) return fn() end)
 
-newModule("Navbar", "ModuleScript", "Havoc.views.Navbar", "Havoc.views", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Navbar", "ModuleScript", "Havoc.views.Navbar", "Havoc.views", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Navbar\").default\
 return exports\
 ", '@'.."Havoc.views.Navbar")) setfenv(fn, newEnv("Havoc.views.Navbar")) return fn() end)
 
-newModule("Navbar", "ModuleScript", "Havoc.views.Navbar.Navbar", "Havoc.views.Navbar", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Navbar", "ModuleScript", "Havoc.views.Navbar.Navbar", "Havoc.views.Navbar", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Acrylic = TS.import(script, script.Parent.Parent.Parent, \"components\", \"Acrylic\").default\
@@ -6529,7 +6680,7 @@ local function Navbar()\
 \9})\
 \9local _attributes = {\
 \9\9Size = NAVBAR_SIZE,\
-\9\9Position = useSpring(if isOpen then UDim2.new(0.5, 0, 1, -20) else UDim2.new(0.5, 0, 1, 100), {}),\
+\9\9Position = useSpring(isOpen and UDim2.new(0.5, 0, 1, -20) or UDim2.new(0.5, 0, 1, 100), {}),\
 \9\9AnchorPoint = Vector2.new(0.5, 1),\
 \9\9BackgroundTransparency = 1,\
 \9}\
@@ -6590,7 +6741,13 @@ local function Navbar()\
 \9\9}),\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(NavbarTab, {\
@@ -6610,7 +6767,13 @@ local function Navbar()\
 \9})\
 \9local _child_1 = theme.acrylic and Roact.createElement(Acrylic)\
 \9if _child_1 then\
-\9\9_children[_length + 6] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 6] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + 5 + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9return Roact.createFragment({\
 \9\9Navbar = Roact.createElement(\"Frame\", _attributes, _children),\
@@ -6637,7 +6800,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Navbar.Navbar")) setfenv(fn, newEnv("Havoc.views.Navbar.Navbar")) return fn() end)
 
-newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.views.Navbar", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("NavbarTab", "ModuleScript", "Havoc.views.Navbar.NavbarTab", "Havoc.views.Navbar", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -6680,7 +6843,7 @@ local function NavbarTab(_param)\
 \9\9\9Roact.createElement(\"ImageLabel\", {\
 \9\9\9\9Image = PAGE_TO_ICON[page],\
 \9\9\9\9ImageColor3 = theme.foreground,\
-\9\9\9\9ImageTransparency = useSpring(if isActive then 0 elseif isHovered then 0.3 else 0.6, {\
+\9\9\9\9ImageTransparency = useSpring(isActive and 0 or (isHovered and 0.3 or 0.6), {\
 \9\9\9\9\9frequency = 4,\
 \9\9\9\9\9dampingRatio = 1,\
 \9\9\9\9}),\
@@ -6698,21 +6861,21 @@ return {\
 }\
 ", '@'.."Havoc.views.Navbar.NavbarTab")) setfenv(fn, newEnv("Havoc.views.Navbar.NavbarTab")) return fn() end)
 
-newModule("Pages", "ModuleScript", "Havoc.views.Pages", "Havoc.views", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Pages", "ModuleScript", "Havoc.views.Pages", "Havoc.views", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Pages\").default\
 return exports\
 ", '@'.."Havoc.views.Pages")) setfenv(fn, newEnv("Havoc.views.Pages")) return fn() end)
 
-newModule("Apps", "ModuleScript", "Havoc.views.Pages.Apps", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Apps", "ModuleScript", "Havoc.views.Pages.Apps", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Apps\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Apps")) setfenv(fn, newEnv("Havoc.views.Pages.Apps")) return fn() end)
 
-newModule("Apps", "ModuleScript", "Havoc.views.Pages.Apps.Apps", "Havoc.views.Pages.Apps", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Apps", "ModuleScript", "Havoc.views.Pages.Apps.Apps", "Havoc.views.Pages.Apps", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -6737,14 +6900,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Apps")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Apps")) return fn() end)
 
-newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players", "Havoc.views.Pages.Apps", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players", "Havoc.views.Pages.Apps", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Players\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Apps.Players")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players")) return fn() end)
 
-newModule("Actions", "ModuleScript", "Havoc.views.Pages.Apps.Players.Actions", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Actions", "ModuleScript", "Havoc.views.Pages.Apps.Players.Actions", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local ActionButton = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"components\", \"ActionButton\").default\
@@ -6797,7 +6960,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Players.Actions")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players.Actions")) return fn() end)
 
-newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Apps.Players.Avatar", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Apps.Players.Avatar", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -6809,7 +6972,13 @@ local px = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"utils\
 local function Avatar()\
 \9local theme = useTheme(\"apps\").players\
 \9local playerSelected = useAppSelector(function(state)\
-\9\9return if state.dashboard.apps.playerSelected ~= nil then (Players:FindFirstChild(state.dashboard.apps.playerSelected)) else nil\
+\9\9local _result\
+\9\9if state.dashboard.apps.playerSelected ~= nil then\
+\9\9\9_result = (Players:FindFirstChild(state.dashboard.apps.playerSelected))\
+\9\9else\
+\9\9\9_result = nil\
+\9\9end\
+\9\9return _result\
 \9end)\
 \9return Roact.createElement(Canvas, {\
 \9\9anchor = Vector2.new(0.5, 0),\
@@ -6817,7 +6986,7 @@ local function Avatar()\
 \9\9position = UDim2.new(0.5, 0, 0, 24),\
 \9}, {\
 \9\9Roact.createElement(\"ImageLabel\", {\
-\9\9\9Image = \"https://www.roblox.com/headshot-thumbnail/image?userId=\" .. (tostring(if playerSelected then playerSelected.UserId else Players.LocalPlayer.UserId) .. \"&width=150&height=150&format=png\"),\
+\9\9\9Image = \"https://www.roblox.com/headshot-thumbnail/image?userId=\" .. (tostring(playerSelected and playerSelected.UserId or Players.LocalPlayer.UserId) .. \"&width=150&height=150&format=png\"),\
 \9\9\9Size = px(150, 150),\
 \9\9\9Position = px(18, 18),\
 \9\9\9BackgroundColor3 = theme.avatar.background,\
@@ -6845,7 +7014,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Players.Avatar")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players.Avatar")) return fn() end)
 
-newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players.Players", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Players", "ModuleScript", "Havoc.views.Pages.Apps.Players.Players", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Card = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"components\", \"Card\").default\
@@ -6877,7 +7046,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Players.Players")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players.Players")) return fn() end)
 
-newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Selection", "ModuleScript", "Havoc.views.Pages.Apps.Players.Selection", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -6943,20 +7112,20 @@ local function Selection()\
 \9\9local _arg0 = function(p)\
 \9\9\9return p.Name == playerSelectedName\
 \9\9end\
-\9\9--▼ ReadonlyArray.find ▼\
-\9\9local _result\
+\9\9-- ▼ ReadonlyArray.find ▼\
+\9\9local _result = nil\
 \9\9for _i, _v in ipairs(players) do\
 \9\9\9if _arg0(_v, _i - 1, players) == true then\
 \9\9\9\9_result = _v\
 \9\9\9\9break\
 \9\9\9end\
 \9\9end\
-\9\9--▲ ReadonlyArray.find ▲\
+\9\9-- ▲ ReadonlyArray.find ▲\
 \9\9local selected = _result\
 \9\9local _arg0_1 = function(p)\
 \9\9\9return p.Name ~= playerSelectedName and (p ~= Players.LocalPlayer or IS_DEV)\
 \9\9end\
-\9\9--▼ ReadonlyArray.filter ▼\
+\9\9-- ▼ ReadonlyArray.filter ▼\
 \9\9local _newValue = {}\
 \9\9local _length = 0\
 \9\9for _k, _v in ipairs(players) do\
@@ -6965,11 +7134,13 @@ local function Selection()\
 \9\9\9\9_newValue[_length] = _v\
 \9\9\9end\
 \9\9end\
-\9\9--▲ ReadonlyArray.filter ▲\
+\9\9-- ▲ ReadonlyArray.filter ▲\
 \9\9local _arg0_2 = function(a, b)\
 \9\9\9return string.lower(a.Name) < string.lower(b.Name)\
 \9\9end\
+\9\9-- ▼ Array.sort ▼\
 \9\9table.sort(_newValue, _arg0_2)\
+\9\9-- ▲ Array.sort ▲\
 \9\9local sorted = _newValue\
 \9\9local _result_1\
 \9\9if selected then\
@@ -6988,15 +7159,15 @@ local function Selection()\
 \9\9\9local _arg0 = function(player)\
 \9\9\9\9return player.Name == playerSelectedName\
 \9\9\9end\
-\9\9\9--▼ ReadonlyArray.find ▼\
-\9\9\9local _result\
+\9\9\9-- ▼ ReadonlyArray.find ▼\
+\9\9\9local _result = nil\
 \9\9\9for _i, _v in ipairs(sortedPlayers) do\
 \9\9\9\9if _arg0(_v, _i - 1, sortedPlayers) == true then\
 \9\9\9\9\9_result = _v\
 \9\9\9\9\9break\
 \9\9\9\9end\
 \9\9\9end\
-\9\9\9--▲ ReadonlyArray.find ▲\
+\9\9\9-- ▲ ReadonlyArray.find ▲\
 \9\9\9_condition = not _result\
 \9\9end\
 \9\9if _condition then\
@@ -7048,7 +7219,7 @@ function PlayerEntry(_param)\
 \9local dispatch = useAppDispatch()\
 \9local theme = useTheme(\"apps\").players.playerButton\
 \9local isOpen = useIsPageOpen(DashboardPage.Apps)\
-\9local isVisible = useDelayedUpdate(isOpen, if isOpen then 170 + index * 40 else 150)\
+\9local isVisible = useDelayedUpdate(isOpen, isOpen and 170 + index * 40 or 150)\
 \9local isSelected = useAppSelector(function(state)\
 \9\9return state.dashboard.apps.playerSelected == name\
 \9end)\
@@ -7057,17 +7228,49 @@ function PlayerEntry(_param)\
 \9local textSize = useMemo(function()\
 \9\9return TextService:GetTextSize(text, 14, Enum.Font.GothamBold, Vector2.new(1000, ENTRY_HEIGHT))\
 \9end, { text })\
-\9local textScrollOffset = useLinear(if hovered then ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X else 0, {\
-\9\9velocity = if hovered then 40 else 150,\
+\9local textScrollOffset = useLinear(hovered and ENTRY_WIDTH - ENTRY_TEXT_PADDING - 20 - textSize.X or 0, {\
+\9\9velocity = hovered and 40 or 150,\
 \9}):map(function(x)\
 \9\9return UDim.new(0, math.min(x, 0))\
 \9end)\
-\9local background = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})\
-\9local dropshadow = useSpring(if isSelected then theme.accent elseif hovered then theme.backgroundHovered or theme.dropshadow:Lerp(theme.accent, 0.5) else theme.dropshadow, {})\
-\9local foreground = useSpring(if isSelected and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})\
+\9local _result\
+\9if isSelected then\
+\9\9_result = theme.accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition = theme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = theme.background:Lerp(theme.accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition\
+\9\9else\
+\9\9\9_result_1 = theme.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local background = useSpring(_result, {})\
+\9local _result_1\
+\9if isSelected then\
+\9\9_result_1 = theme.accent\
+\9else\
+\9\9local _result_2\
+\9\9if hovered then\
+\9\9\9local _condition = theme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = theme.dropshadow:Lerp(theme.accent, 0.5)\
+\9\9\9end\
+\9\9\9_result_2 = _condition\
+\9\9else\
+\9\9\9_result_2 = theme.dropshadow\
+\9\9end\
+\9\9_result_1 = _result_2\
+\9end\
+\9local dropshadow = useSpring(_result_1, {})\
+\9local foreground = useSpring(isSelected and theme.foregroundAccent and theme.foregroundAccent or theme.foreground, {})\
 \9local _attributes = {\
 \9\9size = px(ENTRY_WIDTH, ENTRY_HEIGHT),\
-\9\9position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
+\9\9position = useSpring(isVisible and px(0, (PADDING + ENTRY_HEIGHT) * index) or px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
 \9\9zIndex = index,\
 \9}\
 \9local _children = {\
@@ -7076,7 +7279,7 @@ function PlayerEntry(_param)\
 \9\9\9color = dropshadow,\
 \9\9\9size = UDim2.new(1, 36, 1, 36),\
 \9\9\9position = px(-18, 5 - 18),\
-\9\9\9transparency = useSpring(if isSelected then theme.glowTransparency elseif hovered then lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) else theme.dropshadowTransparency, {}),\
+\9\9\9transparency = useSpring(isSelected and theme.glowTransparency or (hovered and lerp(theme.dropshadowTransparency, theme.glowTransparency, 0.5) or theme.dropshadowTransparency), {}),\
 \9\9}),\
 \9\9Roact.createElement(Fill, {\
 \9\9\9color = background,\
@@ -7090,7 +7293,7 @@ function PlayerEntry(_param)\
 \9\9\9TextColor3 = foreground,\
 \9\9\9TextXAlignment = Enum.TextXAlignment.Left,\
 \9\9\9TextYAlignment = Enum.TextYAlignment.Center,\
-\9\9\9TextTransparency = useSpring(if isSelected then 0 elseif hovered then theme.foregroundTransparency / 2 else theme.foregroundTransparency, {}),\
+\9\9\9TextTransparency = useSpring(isSelected and 0 or (hovered and theme.foregroundTransparency / 2 or theme.foregroundTransparency), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9\9Position = px(ENTRY_TEXT_PADDING, 1),\
 \9\9\9Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),\
@@ -7120,7 +7323,13 @@ function PlayerEntry(_param)\
 \9\9radius = 8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextButton\", {\
@@ -7128,11 +7337,11 @@ function PlayerEntry(_param)\
 \9\9\9local player = Players:FindFirstChild(name)\
 \9\9\9local _condition = not isSelected\
 \9\9\9if _condition then\
-\9\9\9\9local _result = player\
-\9\9\9\9if _result ~= nil then\
-\9\9\9\9\9_result = _result:IsA(\"Player\")\
+\9\9\9\9local _result_2 = player\
+\9\9\9\9if _result_2 ~= nil then\
+\9\9\9\9\9_result_2 = _result_2:IsA(\"Player\")\
 \9\9\9\9end\
-\9\9\9\9_condition = _result\
+\9\9\9\9_condition = _result_2\
 \9\9\9end\
 \9\9\9if _condition then\
 \9\9\9\9dispatch(playerSelected(player))\
@@ -7157,7 +7366,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Players.Selection")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players.Selection")) return fn() end)
 
-newModule("Username", "ModuleScript", "Havoc.views.Pages.Apps.Players.Username", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Username", "ModuleScript", "Havoc.views.Pages.Apps.Players.Username", "Havoc.views.Pages.Apps.Players", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -7170,7 +7379,13 @@ local scale = _udim2.scale\
 local function Username()\
 \9local theme = useTheme(\"apps\").players\
 \9local playerSelected = useAppSelector(function(state)\
-\9\9return if state.dashboard.apps.playerSelected ~= nil then (Players:FindFirstChild(state.dashboard.apps.playerSelected)) else nil\
+\9\9local _result\
+\9\9if state.dashboard.apps.playerSelected ~= nil then\
+\9\9\9_result = (Players:FindFirstChild(state.dashboard.apps.playerSelected))\
+\9\9else\
+\9\9\9_result = nil\
+\9\9end\
+\9\9return _result\
 \9end)\
 \9return Roact.createElement(Canvas, {\
 \9\9anchor = Vector2.new(0.5, 0),\
@@ -7179,7 +7394,7 @@ local function Username()\
 \9}, {\
 \9\9Roact.createElement(\"TextLabel\", {\
 \9\9\9Font = \"GothamBlack\",\
-\9\9\9Text = if playerSelected then playerSelected.DisplayName else \"N/A\",\
+\9\9\9Text = playerSelected and playerSelected.DisplayName or \"N/A\",\
 \9\9\9TextSize = 20,\
 \9\9\9TextColor3 = theme.foreground,\
 \9\9\9TextXAlignment = \"Center\",\
@@ -7189,7 +7404,7 @@ local function Username()\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
 \9\9\9Font = \"GothamBold\",\
-\9\9\9Text = if playerSelected then playerSelected.Name else \"Select a player\",\
+\9\9\9Text = playerSelected and playerSelected.Name or \"Select a player\",\
 \9\9\9TextSize = 16,\
 \9\9\9TextColor3 = theme.foreground,\
 \9\9\9TextXAlignment = \"Center\",\
@@ -7206,21 +7421,21 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Apps.Players.Username")) setfenv(fn, newEnv("Havoc.views.Pages.Apps.Players.Username")) return fn() end)
 
-newModule("Home", "ModuleScript", "Havoc.views.Pages.Home", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Home", "ModuleScript", "Havoc.views.Pages.Home", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Home\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Home")) setfenv(fn, newEnv("Havoc.views.Pages.Home")) return fn() end)
 
-newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"FriendActivity\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Home.FriendActivity")) setfenv(fn, newEnv("Havoc.views.Pages.Home.FriendActivity")) return fn() end)
 
-newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.FriendActivity", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("FriendActivity", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.FriendActivity", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -7255,13 +7470,15 @@ local function FriendActivity()\
 \9\9\9local _arg0 = function(a, b)\
 \9\9\9\9return #a.friends > #b.friends\
 \9\9\9end\
+\9\9\9-- ▼ Array.sort ▼\
 \9\9\9table.sort(currentGames, _arg0)\
+\9\9\9-- ▲ Array.sort ▲\
 \9\9\9setGames(currentGames)\
 \9\9end\
 \9end, { currentGames })\
 \9useInterval(function()\
 \9\9return forceUpdate()\
-\9end, if #currentGames == 0 and status ~= \"pending\" then 5000 else 30000)\
+\9end, #currentGames == 0 and status ~= \"pending\" and 5000 or 30000)\
 \9local _attributes = {\
 \9\9index = 3,\
 \9\9page = DashboardPage.Home,\
@@ -7284,7 +7501,7 @@ local function FriendActivity()\
 \9local _length = #_children\
 \9local _attributes_1 = {\
 \9\9anchor = Vector2.new(0, 1),\
-\9\9size = useSpring(if #games > 0 then UDim2.new(1, 0, 0, 344) else UDim2.new(1, 0, 0, 0), {}),\
+\9\9size = useSpring(#games > 0 and UDim2.new(1, 0, 0, 344) or UDim2.new(1, 0, 0, 0), {}),\
 \9\9position = scale(0, 1),\
 \9}\
 \9local _children_1 = {}\
@@ -7318,7 +7535,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.FriendActivity.FriendActivity")) setfenv(fn, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendActivity")) return fn() end)
 
-newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.FriendItem", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("FriendItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.FriendItem", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -7343,14 +7560,14 @@ local function FriendItem(_param)\
 \9local isHovered, setHovered = useState(false)\
 \9local avatar = \"https://www.roblox.com/headshot-thumbnail/image?userId=\" .. (tostring(friend.VisitorId) .. \"&width=48&height=48&format=png\")\
 \9local _attributes = {\
-\9\9size = useSpring(if isHovered then px(96, 48) else px(48, 48), FRIEND_SPRING_OPTIONS),\
+\9\9size = useSpring(isHovered and px(96, 48) or px(48, 48), FRIEND_SPRING_OPTIONS),\
 \9}\
 \9local _children = {\
 \9\9Roact.createElement(\"ImageLabel\", {\
 \9\9\9Image = \"rbxassetid://8992244272\",\
-\9\9\9ImageColor3 = useSpring(if isHovered then theme.accent else theme.dropshadow, FRIEND_SPRING_OPTIONS),\
-\9\9\9ImageTransparency = useSpring(if isHovered then theme.glowTransparency else theme.dropshadowTransparency, FRIEND_SPRING_OPTIONS),\
-\9\9\9Size = useSpring(if isHovered then px(88 + 36, 74) else px(76, 74), FRIEND_SPRING_OPTIONS),\
+\9\9\9ImageColor3 = useSpring(isHovered and theme.accent or theme.dropshadow, FRIEND_SPRING_OPTIONS),\
+\9\9\9ImageTransparency = useSpring(isHovered and theme.glowTransparency or theme.dropshadowTransparency, FRIEND_SPRING_OPTIONS),\
+\9\9\9Size = useSpring(isHovered and px(88 + 36, 74) or px(76, 74), FRIEND_SPRING_OPTIONS),\
 \9\9\9Position = px(-14, -10),\
 \9\9\9ScaleType = \"Slice\",\
 \9\9\9SliceCenter = Rect.new(Vector2.new(42, 42), Vector2.new(42, 42)),\
@@ -7358,7 +7575,7 @@ local function FriendItem(_param)\
 \9\9}),\
 \9\9Roact.createElement(Fill, {\
 \9\9\9radius = 24,\
-\9\9\9color = useSpring(if isHovered then theme.accent else theme.background, FRIEND_SPRING_OPTIONS),\
+\9\9\9color = useSpring(isHovered and theme.accent or theme.background, FRIEND_SPRING_OPTIONS),\
 \9\9\9transparency = theme.backgroundTransparency,\
 \9\9}),\
 \9}\
@@ -7366,12 +7583,18 @@ local function FriendItem(_param)\
 \9local _child = theme.outlined and (Roact.createFragment({\
 \9\9border = Roact.createElement(Border, {\
 \9\9\9radius = 23,\
-\9\9\9color = if isHovered and theme.foregroundAccent then theme.foregroundAccent else theme.foreground,\
+\9\9\9color = isHovered and theme.foregroundAccent and theme.foregroundAccent or theme.foreground,\
 \9\9\9transparency = 0.7,\
 \9\9}),\
 \9}))\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"ImageLabel\", {\
@@ -7390,7 +7613,7 @@ local function FriendItem(_param)\
 \9}, {\
 \9\9Roact.createElement(\"ImageLabel\", {\
 \9\9\9Image = \"rbxassetid://8992244380\",\
-\9\9\9ImageColor3 = if isHovered and theme.foregroundAccent then theme.foregroundAccent else theme.foreground,\
+\9\9\9ImageColor3 = isHovered and theme.foregroundAccent and theme.foregroundAccent or theme.foreground,\
 \9\9\9ImageTransparency = theme.foregroundTransparency,\
 \9\9\9Size = px(36, 36),\
 \9\9\9Position = px(48, 6),\
@@ -7422,7 +7645,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.FriendActivity.FriendItem")) setfenv(fn, newEnv("Havoc.views.Pages.Home.FriendActivity.FriendItem")) return fn() end)
 
-newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.GameItem", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("GameItem", "ModuleScript", "Havoc.views.Pages.Home.FriendActivity.GameItem", "Havoc.views.Pages.Home.FriendActivity", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useMemo = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useMemo\
@@ -7441,7 +7664,7 @@ local function GameItem(_param)\
 \9local index = _param.index\
 \9local theme = useTheme(\"home\").friendActivity\
 \9local isOpen = useIsPageOpen(DashboardPage.Home)\
-\9local isVisible = useDelayedUpdate(isOpen, if isOpen then 330 + index * 100 else 300)\
+\9local isVisible = useDelayedUpdate(isOpen, isOpen and 330 + index * 100 or 300)\
 \9local canvasLength = useMemo(function()\
 \9\9return #gameActivity.friends * (48 + 10) + 96\
 \9end, { #gameActivity.friends })\
@@ -7449,7 +7672,7 @@ local function GameItem(_param)\
 \9\9Image = gameActivity.thumbnail,\
 \9\9ScaleType = \"Crop\",\
 \9\9Size = px(278, 156),\
-\9\9Position = useSpring(if isVisible then px(24, index * (GAME_PADDING + 156)) else px(-278, index * (GAME_PADDING + 156)), {}),\
+\9\9Position = useSpring(isVisible and px(24, index * (GAME_PADDING + 156)) or px(-278, index * (GAME_PADDING + 156)), {}),\
 \9\9BackgroundTransparency = 1,\
 \9}\
 \9local _children = {\
@@ -7505,7 +7728,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.FriendActivity.GameItem")) setfenv(fn, newEnv("Havoc.views.Pages.Home.FriendActivity.GameItem")) return fn() end)
 
-newModule("Home", "ModuleScript", "Havoc.views.Pages.Home.Home", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Home", "ModuleScript", "Havoc.views.Pages.Home.Home", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -7535,14 +7758,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Home")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Home")) return fn() end)
 
-newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Profile\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Home.Profile")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile")) return fn() end)
 
-newModule("Actions", "ModuleScript", "Havoc.views.Pages.Home.Profile.Actions", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Actions", "ModuleScript", "Havoc.views.Pages.Home.Profile.Actions", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local ActionButton = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"components\", \"ActionButton\").default\
@@ -7594,7 +7817,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Actions")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Actions")) return fn() end)
 
-newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Home.Profile.Avatar", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Avatar", "ModuleScript", "Havoc.views.Pages.Home.Profile.Avatar", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -7639,7 +7862,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Avatar")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Avatar")) return fn() end)
 
-newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Info", "ModuleScript", "Havoc.views.Pages.Home.Profile.Info", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -7664,7 +7887,7 @@ local function Info()\
 \9local _arg0 = function(friend)\
 \9\9return friend.PlaceId ~= nil and friend.PlaceId == game.PlaceId\
 \9end\
-\9--▼ ReadonlyArray.filter ▼\
+\9-- ▼ ReadonlyArray.filter ▼\
 \9local _newValue = {}\
 \9local _length = 0\
 \9for _k, _v in ipairs(friends) do\
@@ -7673,7 +7896,7 @@ local function Info()\
 \9\9\9_newValue[_length] = _v\
 \9\9end\
 \9end\
-\9--▲ ReadonlyArray.filter ▲\
+\9-- ▲ ReadonlyArray.filter ▲\
 \9local friendsJoined = #_newValue\
 \9local showJoinDate = useDelayedUpdate(isOpen, 400, function(open)\
 \9\9return not open\
@@ -7713,38 +7936,38 @@ local function Info()\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
 \9\9\9Font = \"GothamBold\",\
-\9\9\9Text = \"Joined\\n\" .. tostring(os.date(\"%m/%d/%Y\", os.time() - Players.LocalPlayer.AccountAge * 24 * 60 * 60)),\
+\9\9\9Text = \"Joined\\n\" .. tostring((os.date(\"%m/%d/%Y\", os.time() - Players.LocalPlayer.AccountAge * 24 * 60 * 60))),\
 \9\9\9TextSize = 13,\
 \9\9\9TextColor3 = theme.foreground,\
 \9\9\9TextXAlignment = \"Center\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if showJoinDate then 0.2 else 1, {}),\
+\9\9\9TextTransparency = useSpring(showJoinDate and 0.2 or 1, {}),\
 \9\9\9Size = px(85, 48),\
-\9\9\9Position = useSpring(if showJoinDate then px(0, 0) else px(-20, 0), {}),\
+\9\9\9Position = useSpring(showJoinDate and px(0, 0) or px(-20, 0), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
 \9\9\9Font = \"GothamBold\",\
-\9\9\9Text = if friendsJoined == 1 then \"1 friend\\njoined\" else tostring(friendsJoined) .. \" friends\\njoined\",\
+\9\9\9Text = friendsJoined == 1 and \"1 friend\\njoined\" or tostring(friendsJoined) .. \" friends\\njoined\",\
 \9\9\9TextSize = 13,\
 \9\9\9TextColor3 = theme.foreground,\
 \9\9\9TextXAlignment = \"Center\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if showFriendsJoined then 0.2 else 1, {}),\
+\9\9\9TextTransparency = useSpring(showFriendsJoined and 0.2 or 1, {}),\
 \9\9\9Size = px(85, 48),\
-\9\9\9Position = useSpring(if showFriendsJoined then px(97, 0) else px(97 - 20, 0), {}),\
+\9\9\9Position = useSpring(showFriendsJoined and px(97, 0) or px(97 - 20, 0), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
 \9\9\9Font = \"GothamBold\",\
-\9\9\9Text = if friendsOnline == 1 then \"1 friend\\nonline\" else tostring(friendsOnline) .. \" friends\\nonline\",\
+\9\9\9Text = friendsOnline == 1 and \"1 friend\\nonline\" or tostring(friendsOnline) .. \" friends\\nonline\",\
 \9\9\9TextSize = 13,\
 \9\9\9TextColor3 = theme.foreground,\
 \9\9\9TextXAlignment = \"Center\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if showFriendsOnline then 0.2 else 1, {}),\
+\9\9\9TextTransparency = useSpring(showFriendsOnline and 0.2 or 1, {}),\
 \9\9\9Size = px(85, 48),\
-\9\9\9Position = useSpring(if showFriendsOnline then px(193, 0) else px(193 - 20, 0), {}),\
+\9\9\9Position = useSpring(showFriendsOnline and px(193, 0) or px(193 - 20, 0), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9}),\
 \9})\
@@ -7755,7 +7978,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Info")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Info")) return fn() end)
 
-newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile.Profile", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Profile", "ModuleScript", "Havoc.views.Pages.Home.Profile.Profile", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -7797,7 +8020,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Profile")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Profile")) return fn() end)
 
-newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Sliders", "ModuleScript", "Havoc.views.Pages.Home.Profile.Sliders", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -7865,9 +8088,29 @@ function Slider(props)\
 \9local value, setValue = useBinding(job.value)\
 \9local hovered, setHovered = useState(false)\
 \9local highlightColors = theme.highlight\
-\9local accent = highlightColors[props.jobName] or theme.foreground\
-\9local buttonBackground = useSpring(if job.active then accent elseif hovered then theme.button.backgroundHovered or theme.button.background:Lerp(accent, 0.1) else theme.button.background, {})\
-\9local buttonForeground = useSpring(if job.active and theme.button.foregroundAccent then theme.button.foregroundAccent else theme.foreground, {})\
+\9local _condition = highlightColors[props.jobName]\
+\9if _condition == nil then\
+\9\9_condition = theme.foreground\
+\9end\
+\9local accent = _condition\
+\9local _result\
+\9if job.active then\
+\9\9_result = accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition_1 = theme.button.backgroundHovered\
+\9\9\9if _condition_1 == nil then\
+\9\9\9\9_condition_1 = theme.button.background:Lerp(accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition_1\
+\9\9else\
+\9\9\9_result_1 = theme.button.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local buttonBackground = useSpring(_result, {})\
+\9local buttonForeground = useSpring(job.active and theme.button.foregroundAccent and theme.button.foregroundAccent or theme.foreground, {})\
 \9return Roact.createElement(Canvas, {\
 \9\9size = px(278, 49),\
 \9\9position = px(0, props.position),\
@@ -7931,7 +8174,7 @@ function Slider(props)\
 \9\9\9\9TextColor3 = buttonForeground,\
 \9\9\9\9TextXAlignment = \"Center\",\
 \9\9\9\9TextYAlignment = \"Center\",\
-\9\9\9\9TextTransparency = useSpring(if job.active then 0 elseif hovered then theme.button.foregroundTransparency - 0.25 else theme.button.foregroundTransparency, {}),\
+\9\9\9\9TextTransparency = useSpring(job.active and 0 or (hovered and theme.button.foregroundTransparency - 0.25 or theme.button.foregroundTransparency), {}),\
 \9\9\9\9Size = scale(1, 1),\
 \9\9\9\9BackgroundTransparency = 1,\
 \9\9\9}),\
@@ -7943,7 +8186,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Sliders")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Sliders")) return fn() end)
 
-newModule("Username", "ModuleScript", "Havoc.views.Pages.Home.Profile.Username", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Username", "ModuleScript", "Havoc.views.Pages.Home.Profile.Username", "Havoc.views.Pages.Home.Profile", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -7988,14 +8231,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Profile.Username")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Profile.Username")) return fn() end)
 
-newModule("Server", "ModuleScript", "Havoc.views.Pages.Home.Server", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Server", "ModuleScript", "Havoc.views.Pages.Home.Server", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Server\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Home.Server")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Server")) return fn() end)
 
-newModule("Server", "ModuleScript", "Havoc.views.Pages.Home.Server.Server", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Server", "ModuleScript", "Havoc.views.Pages.Home.Server.Server", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Players = TS.import(script, TS.getModule(script, \"@rbxts\", \"services\")).Players\
@@ -8038,12 +8281,12 @@ local function Server()\
 \9\9\9offset = 108,\
 \9\9\9units = \"elapsed\",\
 \9\9\9getValue = function()\
-\9\9\9\9local uptime = if IS_DEV then os.clock() else time()\
+\9\9\9\9local uptime = IS_DEV and os.clock() or time()\
 \9\9\9\9local days = math.floor(uptime / 86400)\
 \9\9\9\9local hours = math.floor((uptime - days * 86400) / 3600)\
 \9\9\9\9local minutes = math.floor((uptime - days * 86400 - hours * 3600) / 60)\
 \9\9\9\9local seconds = math.floor(uptime - days * 86400 - hours * 3600 - minutes * 60)\
-\9\9\9\9return if days > 0 then tostring(days) .. \" days\" elseif hours > 0 then tostring(hours) .. \" hours\" elseif minutes > 0 then tostring(minutes) .. \" minutes\" else tostring(seconds) .. \" seconds\"\
+\9\9\9\9return days > 0 and tostring(days) .. \" days\" or (hours > 0 and tostring(hours) .. \" hours\" or (minutes > 0 and tostring(minutes) .. \" minutes\" or tostring(seconds) .. \" seconds\"))\
 \9\9\9end,\
 \9\9}),\
 \9\9Roact.createElement(StatusLabel, {\
@@ -8076,7 +8319,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Server.Server")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Server.Server")) return fn() end)
 
-newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerAction", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ServerAction", "ModuleScript", "Havoc.views.Pages.Home.Server.ServerAction", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -8100,7 +8343,7 @@ local function ServerAction(_param)\
 \9local size = _param.size\
 \9local position = _param.position\
 \9local dispatch = useAppDispatch()\
-\9local theme = useTheme(\"home\").server[if action == \"switchServer\" then \"switchButton\" else \"rejoinButton\"]\
+\9local theme = useTheme(\"home\").server[action == \"switchServer\" and \"switchButton\" or \"rejoinButton\"]\
 \9local active = useAppSelector(function(state)\
 \9\9local job = state.jobs[action]\
 \9\9local _result = job\
@@ -8114,8 +8357,24 @@ local function ServerAction(_param)\
 \9\9return _condition\
 \9end)\
 \9local hovered, setHovered = useState(false)\
-\9local background = useSpring(if active then theme.accent elseif hovered then theme.backgroundHovered or theme.background:Lerp(theme.accent, 0.1) else theme.background, {})\
-\9local foreground = useSpring(if active and theme.foregroundAccent then theme.foregroundAccent else theme.foreground, {})\
+\9local _result\
+\9if active then\
+\9\9_result = theme.accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition = theme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = theme.background:Lerp(theme.accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition\
+\9\9else\
+\9\9\9_result_1 = theme.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local background = useSpring(_result, {})\
+\9local foreground = useSpring(active and theme.foregroundAccent and theme.foregroundAccent or theme.foreground, {})\
 \9return Roact.createElement(BrightButton, {\
 \9\9onActivate = function()\
 \9\9\9return dispatch(setJobActive(action, not active))\
@@ -8139,7 +8398,7 @@ local function ServerAction(_param)\
 \9\9Roact.createElement(\"ImageLabel\", {\
 \9\9\9Image = icon,\
 \9\9\9ImageColor3 = foreground,\
-\9\9\9ImageTransparency = useSpring(if active then 0 elseif hovered then theme.foregroundTransparency - 0.25 else theme.foregroundTransparency, {}),\
+\9\9\9ImageTransparency = useSpring(active and 0 or (hovered and theme.foregroundTransparency - 0.25 or theme.foregroundTransparency), {}),\
 \9\9\9AnchorPoint = Vector2.new(0.5, 0.5),\
 \9\9\9Size = px(36, 36),\
 \9\9\9Position = scale(0.5, 0.5),\
@@ -8153,7 +8412,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Server.ServerAction")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Server.ServerAction")) return fn() end)
 
-newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLabel", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("StatusLabel", "ModuleScript", "Havoc.views.Pages.Home.Server.StatusLabel", "Havoc.views.Pages.Home.Server", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -8175,7 +8434,7 @@ local function StatusLabel(_param)\
 \9local theme = useTheme(\"home\").server\
 \9local value, setValue = useState(getValue)\
 \9local isOpen = useIsPageOpen(DashboardPage.Home)\
-\9local isVisible = useDelayedUpdate(isOpen, if isOpen then 330 + index * 100 else 300)\
+\9local isVisible = useDelayedUpdate(isOpen, isOpen and 330 + index * 100 or 300)\
 \9local valueLength = useMemo(function()\
 \9\9return TextService:GetTextSize(value .. \" \", 16, \"GothamBold\", Vector2.new()).X\
 \9end, { value })\
@@ -8189,12 +8448,12 @@ local function StatusLabel(_param)\
 \9\9\9Font = \"GothamBold\",\
 \9\9\9TextSize = 16,\
 \9\9\9TextColor3 = theme.foreground,\
-\9\9\9TextTransparency = useSpring(if isVisible then 0 else 1, {\
+\9\9\9TextTransparency = useSpring(isVisible and 0 or 1, {\
 \9\9\9\9frequency = 2,\
 \9\9\9}),\
 \9\9\9TextXAlignment = \"Left\",\
 \9\9\9TextYAlignment = \"Top\",\
-\9\9\9Position = useSpring(if isVisible then px(24, offset) else px(0, offset), {}),\
+\9\9\9Position = useSpring(isVisible and px(24, offset) or px(0, offset), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
@@ -8203,10 +8462,10 @@ local function StatusLabel(_param)\
 \9\9\9Font = \"GothamBold\",\
 \9\9\9TextSize = 16,\
 \9\9\9TextColor3 = theme.foreground,\
-\9\9\9TextTransparency = useSpring(if isVisible then 0.4 else 1, {}),\
+\9\9\9TextTransparency = useSpring(isVisible and 0.4 or 1, {}),\
 \9\9\9TextXAlignment = \"Left\",\
 \9\9\9TextYAlignment = \"Top\",\
-\9\9\9Position = useSpring(if isVisible then px(24 + valueLength, offset) else px(0 + valueLength, offset), {}),\
+\9\9\9Position = useSpring(isVisible and px(24 + valueLength, offset) or px(0 + valueLength, offset), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9}),\
 \9})\
@@ -8217,7 +8476,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Home.Server.StatusLabel")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Server.StatusLabel")) return fn() end)
 
-newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Title", "ModuleScript", "Havoc.views.Pages.Home.Title", "Havoc.views.Pages.Home", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -8331,7 +8590,7 @@ function Label(props)\
 \9\9Font = font,\
 \9\9TextColor3 = theme.foreground,\
 \9\9TextSize = size,\
-\9\9TextTransparency = useSpring(if isActive then transparency else 1, {\
+\9\9TextTransparency = useSpring(isActive and transparency or 1, {\
 \9\9\9frequency = 2,\
 \9\9}),\
 \9\9TextXAlignment = \"Left\",\
@@ -8352,14 +8611,14 @@ end\
 return exports\
 ", '@'.."Havoc.views.Pages.Home.Title")) setfenv(fn, newEnv("Havoc.views.Pages.Home.Title")) return fn() end)
 
-newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Misc\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Misc")) setfenv(fn, newEnv("Havoc.views.Pages.Misc")) return fn() end)
 
-newModule("GistLoader", "ModuleScript", "Havoc.views.Pages.Misc.GistLoader", "Havoc.views.Pages.Misc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("GistLoader", "ModuleScript", "Havoc.views.Pages.Misc.GistLoader", "Havoc.views.Pages.Misc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -8424,7 +8683,7 @@ local function GistLoader()\
 \9\9\9local _arg0 = function(cmd)\
 \9\9\9\9return (string.find(string.lower(cmd.name), query)) ~= nil or (string.find(string.lower(cmd.description), query)) ~= nil\
 \9\9\9end\
-\9\9\9--▼ ReadonlyArray.filter ▼\
+\9\9\9-- ▼ ReadonlyArray.filter ▼\
 \9\9\9local _newValue = {}\
 \9\9\9local _length = 0\
 \9\9\9for _k, _v in ipairs(commands) do\
@@ -8433,7 +8692,7 @@ local function GistLoader()\
 \9\9\9\9\9_newValue[_length] = _v\
 \9\9\9\9end\
 \9\9\9end\
-\9\9\9--▲ ReadonlyArray.filter ▲\
+\9\9\9-- ▲ ReadonlyArray.filter ▲\
 \9\9\9setFiltered(_newValue)\
 \9\9end\
 \9end, { commands })\
@@ -8527,12 +8786,12 @@ local function GistLoader()\
 \9\9\9}),\
 \9\9})\
 \9end\
-\9--▼ ReadonlyArray.map ▼\
+\9-- ▼ ReadonlyArray.map ▼\
 \9local _newValue = table.create(#filtered)\
 \9for _k, _v in ipairs(filtered) do\
 \9\9_newValue[_k] = _arg0(_v, _k - 1, filtered)\
 \9end\
-\9--▲ ReadonlyArray.map ▲\
+\9-- ▲ ReadonlyArray.map ▲\
 \9local _attributes_1 = {\
 \9\9Size = UDim2.new(1, 0, 0, 260),\
 \9\9BackgroundTransparency = 1,\
@@ -8555,7 +8814,7 @@ local function GistLoader()\
 \9_length_1 = #_children_1\
 \9local _child = #filtered == 0 and (Roact.createFragment({\
 \9\9NoResults = Roact.createElement(\"TextLabel\", {\
-\9\9\9Text = if #commands == 0 then status else \"No matching commands\",\
+\9\9\9Text = #commands == 0 and status or \"No matching commands\",\
 \9\9\9Size = UDim2.new(1, 0, 0, 40),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9\9TextColor3 = TEXT_DIM,\
@@ -8564,7 +8823,13 @@ local function GistLoader()\
 \9\9}),\
 \9}))\
 \9if _child then\
-\9\9_children_1[_length_1 + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children_1[_length_1 + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children_1[_length_1 + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_children.CommandList = Roact.createElement(\"ScrollingFrame\", _attributes_1, _children_1)\
 \9_children.Footer = Roact.createElement(\"Frame\", {\
@@ -8573,10 +8838,10 @@ local function GistLoader()\
 \9\9LayoutOrder = 2,\
 \9}, {\
 \9\9RunButton = Roact.createElement(\"TextButton\", {\
-\9\9\9Text = if isRunning then \"Running...\" elseif selected then \"Run: \" .. selected.name else \"Select a command\",\
+\9\9\9Text = isRunning and \"Running...\" or (selected and \"Run: \" .. selected.name or \"Select a command\"),\
 \9\9\9Size = UDim2.new(1, 0, 0, 40),\
-\9\9\9BackgroundColor3 = if selected and not isRunning then GREEN else Color3.fromRGB(40, 40, 40),\
-\9\9\9TextColor3 = if selected and not isRunning then Color3.fromRGB(10, 10, 10) else TEXT_DIM,\
+\9\9\9BackgroundColor3 = selected and not isRunning and GREEN or Color3.fromRGB(40, 40, 40),\
+\9\9\9TextColor3 = selected and not isRunning and Color3.fromRGB(10, 10, 10) or TEXT_DIM,\
 \9\9\9Font = Enum.Font.GothamBold,\
 \9\9\9TextSize = 14,\
 \9\9\9AutoButtonColor = false,\
@@ -8610,7 +8875,7 @@ function CommandItem(_param)\
 \9local _attributes = {\
 \9\9Text = \"\",\
 \9\9Size = UDim2.new(1, 0, 0, 50),\
-\9\9BackgroundColor3 = if isSelected then Color3.fromRGB(30, 50, 35) elseif hovered then BG_ITEM_HOVER else BG_ITEM,\
+\9\9BackgroundColor3 = isSelected and Color3.fromRGB(30, 50, 35) or (hovered and BG_ITEM_HOVER or BG_ITEM),\
 \9\9AutoButtonColor = false,\
 \9\9LayoutOrder = layoutOrder,\
 \9\9[Roact.Event.Activated] = onSelect,\
@@ -8632,7 +8897,13 @@ function CommandItem(_param)\
 \9\9Thickness = 1,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children.Name = Roact.createElement(\"TextLabel\", {\
@@ -8665,7 +8936,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Misc.GistLoader")) setfenv(fn, newEnv("Havoc.views.Pages.Misc.GistLoader")) return fn() end)
 
-newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc.Misc", "Havoc.views.Pages.Misc", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Misc", "ModuleScript", "Havoc.views.Pages.Misc.Misc", "Havoc.views.Pages.Misc", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Card = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Card\").default\
@@ -8710,21 +8981,21 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Misc.Misc")) setfenv(fn, newEnv("Havoc.views.Pages.Misc.Misc")) return fn() end)
 
-newModule("Options", "ModuleScript", "Havoc.views.Pages.Options", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Options", "ModuleScript", "Havoc.views.Pages.Options", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Options\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Options")) setfenv(fn, newEnv("Havoc.views.Pages.Options")) return fn() end)
 
-newModule("Config", "ModuleScript", "Havoc.views.Pages.Options.Config", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Config", "ModuleScript", "Havoc.views.Pages.Options.Config", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Config\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Options.Config")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Config")) return fn() end)
 
-newModule("Config", "ModuleScript", "Havoc.views.Pages.Options.Config.Config", "Havoc.views.Pages.Options.Config", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Config", "ModuleScript", "Havoc.views.Pages.Options.Config.Config", "Havoc.views.Pages.Options.Config", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -8793,7 +9064,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Config.Config")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Config.Config")) return fn() end)
 
-newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.ConfigItem", "Havoc.views.Pages.Options.Config", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ConfigItem", "ModuleScript", "Havoc.views.Pages.Options.Config.ConfigItem", "Havoc.views.Pages.Options.Config", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -8831,9 +9102,41 @@ local function ConfigItem(_param)\
 \9\9return state.options.config[action]\
 \9end)\
 \9local hovered, setHovered = useState(false)\
-\9local background = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})\
-\9local dropshadow = useSpring(if active then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})\
-\9local foreground = useSpring(if active and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})\
+\9local _result\
+\9if active then\
+\9\9_result = buttonTheme.accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.background:Lerp(buttonTheme.accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition\
+\9\9else\
+\9\9\9_result_1 = buttonTheme.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local background = useSpring(_result, {})\
+\9local _result_1\
+\9if active then\
+\9\9_result_1 = buttonTheme.accent\
+\9else\
+\9\9local _result_2\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5)\
+\9\9\9end\
+\9\9\9_result_2 = _condition\
+\9\9else\
+\9\9\9_result_2 = buttonTheme.dropshadow\
+\9\9end\
+\9\9_result_1 = _result_2\
+\9end\
+\9local dropshadow = useSpring(_result_1, {})\
+\9local foreground = useSpring(active and buttonTheme.foregroundAccent and buttonTheme.foregroundAccent or buttonTheme.foreground, {})\
 \9local _attributes = {\
 \9\9size = px(ENTRY_WIDTH, ENTRY_HEIGHT),\
 \9\9position = px(0, (PADDING + ENTRY_HEIGHT) * index),\
@@ -8845,7 +9148,7 @@ local function ConfigItem(_param)\
 \9\9\9color = dropshadow,\
 \9\9\9size = UDim2.new(1, 36, 1, 36),\
 \9\9\9position = px(-18, 5 - 18),\
-\9\9\9transparency = useSpring(if active then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),\
+\9\9\9transparency = useSpring(active and buttonTheme.glowTransparency or (hovered and lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) or buttonTheme.dropshadowTransparency), {}),\
 \9\9}),\
 \9\9Roact.createElement(Fill, {\
 \9\9\9color = background,\
@@ -8859,7 +9162,7 @@ local function ConfigItem(_param)\
 \9\9\9TextColor3 = foreground,\
 \9\9\9TextXAlignment = \"Left\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if active then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),\
+\9\9\9TextTransparency = useSpring(active and 0 or (hovered and buttonTheme.foregroundTransparency / 2 or buttonTheme.foregroundTransparency), {}),\
 \9\9\9Position = px(ENTRY_TEXT_PADDING, 1),\
 \9\9\9Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),\
 \9\9\9BackgroundTransparency = 1,\
@@ -8873,7 +9176,13 @@ local function ConfigItem(_param)\
 \9\9radius = 8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextButton\", {\
@@ -8904,7 +9213,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Config.ConfigItem")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Config.ConfigItem")) return fn() end)
 
-newModule("Options", "ModuleScript", "Havoc.views.Pages.Options.Options", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Options", "ModuleScript", "Havoc.views.Pages.Options.Options", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -8933,14 +9242,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Options")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Options")) return fn() end)
 
-newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Shortcuts\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Options.Shortcuts")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Shortcuts")) return fn() end)
 
-newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.ShortcutItem", "Havoc.views.Pages.Options.Shortcuts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ShortcutItem", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.ShortcutItem", "Havoc.views.Pages.Options.Shortcuts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local _roact_hooked = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src)\
@@ -8982,7 +9291,7 @@ local function ShortcutItem(_param)\
 \9local dispatch = useAppDispatch()\
 \9local buttonTheme = useTheme(\"options\").shortcuts.shortcutButton\
 \9local isOpen = useIsPageOpen(DashboardPage.Options)\
-\9local isVisible = useDelayedUpdate(isOpen, if isOpen then 250 + index * 40 else 230)\
+\9local isVisible = useDelayedUpdate(isOpen, isOpen and 250 + index * 40 or 230)\
 \9local shortcut = useAppSelector(function(state)\
 \9\9return state.options.shortcuts[action]\
 \9end)\
@@ -8990,15 +9299,15 @@ local function ShortcutItem(_param)\
 \9local _arg0 = function(item)\
 \9\9return item.Value == shortcut\
 \9end\
-\9--▼ ReadonlyArray.find ▼\
-\9local _result\
+\9-- ▼ ReadonlyArray.find ▼\
+\9local _result = nil\
 \9for _i, _v in ipairs(_exp) do\
 \9\9if _arg0(_v, _i - 1, _exp) == true then\
 \9\9\9_result = _v\
 \9\9\9break\
 \9\9end\
 \9end\
-\9--▲ ReadonlyArray.find ▲\
+\9-- ▲ ReadonlyArray.find ▲\
 \9local shortcutEnum = _result\
 \9local selected = selectedItem == action\
 \9local hovered, setHovered = useState(false)\
@@ -9055,12 +9364,44 @@ local function ShortcutItem(_param)\
 \9\9\9handle:Disconnect()\
 \9\9end\
 \9end, { selected })\
-\9local background = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})\
-\9local dropshadow = useSpring(if selected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})\
-\9local foreground = useSpring(if selected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})\
+\9local _result_1\
+\9if selected then\
+\9\9_result_1 = buttonTheme.accent\
+\9else\
+\9\9local _result_2\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.background:Lerp(buttonTheme.accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_2 = _condition\
+\9\9else\
+\9\9\9_result_2 = buttonTheme.background\
+\9\9end\
+\9\9_result_1 = _result_2\
+\9end\
+\9local background = useSpring(_result_1, {})\
+\9local _result_2\
+\9if selected then\
+\9\9_result_2 = buttonTheme.accent\
+\9else\
+\9\9local _result_3\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5)\
+\9\9\9end\
+\9\9\9_result_3 = _condition\
+\9\9else\
+\9\9\9_result_3 = buttonTheme.dropshadow\
+\9\9end\
+\9\9_result_2 = _result_3\
+\9end\
+\9local dropshadow = useSpring(_result_2, {})\
+\9local foreground = useSpring(selected and buttonTheme.foregroundAccent and buttonTheme.foregroundAccent or buttonTheme.foreground, {})\
 \9local _attributes = {\
 \9\9size = px(ENTRY_WIDTH, ENTRY_HEIGHT),\
-\9\9position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
+\9\9position = useSpring(isVisible and px(0, (PADDING + ENTRY_HEIGHT) * index) or px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
 \9\9zIndex = index,\
 \9}\
 \9local _children = {\
@@ -9069,7 +9410,7 @@ local function ShortcutItem(_param)\
 \9\9\9color = dropshadow,\
 \9\9\9size = UDim2.new(1, 36, 1, 36),\
 \9\9\9position = px(-18, 5 - 18),\
-\9\9\9transparency = useSpring(if selected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),\
+\9\9\9transparency = useSpring(selected and buttonTheme.glowTransparency or (hovered and lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) or buttonTheme.dropshadowTransparency), {}),\
 \9\9}),\
 \9\9Roact.createElement(Fill, {\
 \9\9\9color = background,\
@@ -9083,20 +9424,20 @@ local function ShortcutItem(_param)\
 \9\9\9TextColor3 = foreground,\
 \9\9\9TextXAlignment = \"Left\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),\
+\9\9\9TextTransparency = useSpring(selected and 0 or (hovered and buttonTheme.foregroundTransparency / 2 or buttonTheme.foregroundTransparency), {}),\
 \9\9\9Position = px(ENTRY_TEXT_PADDING, 1),\
 \9\9\9Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9\9ClipsDescendants = true,\
 \9\9}),\
 \9\9Roact.createElement(\"TextLabel\", {\
-\9\9\9Text = if shortcutEnum then shortcutEnum.Name else \"Not bound\",\
+\9\9\9Text = shortcutEnum and shortcutEnum.Name or \"Not bound\",\
 \9\9\9Font = \"GothamBold\",\
 \9\9\9TextSize = 16,\
 \9\9\9TextColor3 = foreground,\
 \9\9\9TextXAlignment = \"Center\",\
 \9\9\9TextYAlignment = \"Center\",\
-\9\9\9TextTransparency = useSpring(if selected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),\
+\9\9\9TextTransparency = useSpring(selected and 0 or (hovered and buttonTheme.foregroundTransparency / 2 or buttonTheme.foregroundTransparency), {}),\
 \9\9\9TextTruncate = \"AtEnd\",\
 \9\9\9AnchorPoint = Vector2.new(1, 0),\
 \9\9\9Position = UDim2.new(1, 0, 0, 1),\
@@ -9105,8 +9446,8 @@ local function ShortcutItem(_param)\
 \9\9\9ClipsDescendants = true,\
 \9\9}),\
 \9\9Roact.createElement(\"Frame\", {\
-\9\9\9Size = if buttonTheme.outlined then UDim2.new(0, 1, 1, -2) else UDim2.new(0, 1, 1, -36),\
-\9\9\9Position = if buttonTheme.outlined then UDim2.new(1, -124, 0, 1) else UDim2.new(1, -124, 0, 18),\
+\9\9\9Size = buttonTheme.outlined and UDim2.new(0, 1, 1, -2) or UDim2.new(0, 1, 1, -36),\
+\9\9\9Position = buttonTheme.outlined and UDim2.new(1, -124, 0, 1) or UDim2.new(1, -124, 0, 18),\
 \9\9\9BackgroundColor3 = foreground,\
 \9\9\9BackgroundTransparency = 0.8,\
 \9\9\9BorderSizePixel = 0,\
@@ -9119,7 +9460,13 @@ local function ShortcutItem(_param)\
 \9\9radius = 8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextButton\", {\
@@ -9148,7 +9495,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Shortcuts.ShortcutItem")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Shortcuts.ShortcutItem")) return fn() end)
 
-newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.Shortcuts", "Havoc.views.Pages.Options.Shortcuts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Shortcuts", "ModuleScript", "Havoc.views.Pages.Options.Shortcuts.Shortcuts", "Havoc.views.Pages.Options.Shortcuts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -9290,14 +9637,14 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Shortcuts.Shortcuts")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Shortcuts.Shortcuts")) return fn() end)
 
-newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes", "Havoc.views.Pages.Options", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Themes\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Options.Themes")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Themes")) return fn() end)
 
-newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeItem", "Havoc.views.Pages.Options.Themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ThemeItem", "ModuleScript", "Havoc.views.Pages.Options.Themes.ThemeItem", "Havoc.views.Pages.Options.Themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useState = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useState\
@@ -9334,17 +9681,49 @@ local function ThemeItem(_param)\
 \9local dispatch = useAppDispatch()\
 \9local buttonTheme = useTheme(\"options\").themes.themeButton\
 \9local isOpen = useIsPageOpen(DashboardPage.Options)\
-\9local isVisible = useDelayedUpdate(isOpen, if isOpen then 300 + index * 40 else 280)\
+\9local isVisible = useDelayedUpdate(isOpen, isOpen and 300 + index * 40 or 280)\
 \9local isSelected = useAppSelector(function(state)\
 \9\9return state.options.currentTheme == theme.name\
 \9end)\
 \9local hovered, setHovered = useState(false)\
-\9local background = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.background:Lerp(buttonTheme.accent, 0.1) else buttonTheme.background, {})\
-\9local dropshadow = useSpring(if isSelected then buttonTheme.accent elseif hovered then buttonTheme.backgroundHovered or buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5) else buttonTheme.dropshadow, {})\
-\9local foreground = useSpring(if isSelected and buttonTheme.foregroundAccent then buttonTheme.foregroundAccent else buttonTheme.foreground, {})\
+\9local _result\
+\9if isSelected then\
+\9\9_result = buttonTheme.accent\
+\9else\
+\9\9local _result_1\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.background:Lerp(buttonTheme.accent, 0.1)\
+\9\9\9end\
+\9\9\9_result_1 = _condition\
+\9\9else\
+\9\9\9_result_1 = buttonTheme.background\
+\9\9end\
+\9\9_result = _result_1\
+\9end\
+\9local background = useSpring(_result, {})\
+\9local _result_1\
+\9if isSelected then\
+\9\9_result_1 = buttonTheme.accent\
+\9else\
+\9\9local _result_2\
+\9\9if hovered then\
+\9\9\9local _condition = buttonTheme.backgroundHovered\
+\9\9\9if _condition == nil then\
+\9\9\9\9_condition = buttonTheme.dropshadow:Lerp(buttonTheme.accent, 0.5)\
+\9\9\9end\
+\9\9\9_result_2 = _condition\
+\9\9else\
+\9\9\9_result_2 = buttonTheme.dropshadow\
+\9\9end\
+\9\9_result_1 = _result_2\
+\9end\
+\9local dropshadow = useSpring(_result_1, {})\
+\9local foreground = useSpring(isSelected and buttonTheme.foregroundAccent and buttonTheme.foregroundAccent or buttonTheme.foreground, {})\
 \9local _attributes = {\
 \9\9size = px(ENTRY_WIDTH, ENTRY_HEIGHT),\
-\9\9position = useSpring(if isVisible then px(0, (PADDING + ENTRY_HEIGHT) * index) else px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
+\9\9position = useSpring(isVisible and px(0, (PADDING + ENTRY_HEIGHT) * index) or px(-ENTRY_WIDTH - 24, (PADDING + ENTRY_HEIGHT) * index), {}),\
 \9\9zIndex = index,\
 \9}\
 \9local _children = {\
@@ -9353,7 +9732,7 @@ local function ThemeItem(_param)\
 \9\9\9color = dropshadow,\
 \9\9\9size = UDim2.new(1, 36, 1, 36),\
 \9\9\9position = px(-18, 5 - 18),\
-\9\9\9transparency = useSpring(if isSelected then buttonTheme.glowTransparency elseif hovered then lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) else buttonTheme.dropshadowTransparency, {}),\
+\9\9\9transparency = useSpring(isSelected and buttonTheme.glowTransparency or (hovered and lerp(buttonTheme.dropshadowTransparency, buttonTheme.glowTransparency, 0.5) or buttonTheme.dropshadowTransparency), {}),\
 \9\9}),\
 \9\9Roact.createElement(Fill, {\
 \9\9\9color = background,\
@@ -9367,7 +9746,7 @@ local function ThemeItem(_param)\
 \9\9\9TextColor3 = foreground,\
 \9\9\9TextXAlignment = Enum.TextXAlignment.Left,\
 \9\9\9TextYAlignment = Enum.TextYAlignment.Center,\
-\9\9\9TextTransparency = useSpring(if isSelected then 0 elseif hovered then buttonTheme.foregroundTransparency / 2 else buttonTheme.foregroundTransparency, {}),\
+\9\9\9TextTransparency = useSpring(isSelected and 0 or (hovered and buttonTheme.foregroundTransparency / 2 or buttonTheme.foregroundTransparency), {}),\
 \9\9\9BackgroundTransparency = 1,\
 \9\9\9Position = px(ENTRY_TEXT_PADDING, 1),\
 \9\9\9Size = UDim2.new(1, -ENTRY_TEXT_PADDING, 1, -1),\
@@ -9385,7 +9764,13 @@ local function ThemeItem(_param)\
 \9\9radius = 8,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextButton\", {\
@@ -9435,7 +9820,7 @@ function ThemePreview(_param)\
 \9\9\9\9Rotation = previewTheme.foreground.rotation,\
 \9\9\9}),\
 \9\9\9Roact.createElement(\"UIStroke\", {\
-\9\9\9\9Color = if getLuminance(previewTheme.foreground.color) > 0.5 then hex(\"#000000\") else hex(\"#ffffff\"),\
+\9\9\9\9Color = getLuminance(previewTheme.foreground.color) > 0.5 and hex(\"#000000\") or hex(\"#ffffff\"),\
 \9\9\9\9Transparency = 0.5,\
 \9\9\9\9Thickness = 2,\
 \9\9\9}),\
@@ -9456,7 +9841,7 @@ function ThemePreview(_param)\
 \9\9\9\9Rotation = previewTheme.background.rotation,\
 \9\9\9}),\
 \9\9\9Roact.createElement(\"UIStroke\", {\
-\9\9\9\9Color = if getLuminance(previewTheme.background.color) > 0.5 then hex(\"#000000\") else hex(\"#ffffff\"),\
+\9\9\9\9Color = getLuminance(previewTheme.background.color) > 0.5 and hex(\"#000000\") or hex(\"#ffffff\"),\
 \9\9\9\9Transparency = 0.5,\
 \9\9\9\9Thickness = 2,\
 \9\9\9}),\
@@ -9477,7 +9862,7 @@ function ThemePreview(_param)\
 \9\9\9\9Rotation = previewTheme.accent.rotation,\
 \9\9\9}),\
 \9\9\9Roact.createElement(\"UIStroke\", {\
-\9\9\9\9Color = if getLuminance(previewTheme.accent.color) > 0.5 then hex(\"#000000\") else hex(\"#ffffff\"),\
+\9\9\9\9Color = getLuminance(previewTheme.accent.color) > 0.5 and hex(\"#000000\") or hex(\"#ffffff\"),\
 \9\9\9\9Transparency = 0.5,\
 \9\9\9\9Thickness = 2,\
 \9\9\9}),\
@@ -9493,7 +9878,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Themes.ThemeItem")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Themes.ThemeItem")) return fn() end)
 
-newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes.Themes", "Havoc.views.Pages.Options.Themes", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Themes", "ModuleScript", "Havoc.views.Pages.Options.Themes.Themes", "Havoc.views.Pages.Options.Themes", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useMemo = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useMemo\
@@ -9574,7 +9959,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Options.Themes.Themes")) setfenv(fn, newEnv("Havoc.views.Pages.Options.Themes.Themes")) return fn() end)
 
-newModule("Pages", "ModuleScript", "Havoc.views.Pages.Pages", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Pages", "ModuleScript", "Havoc.views.Pages.Pages", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useDelayedUpdate = TS.import(script, script.Parent.Parent.Parent, \"hooks\", \"common\", \"use-delayed-update\").useDelayedUpdate\
@@ -9603,7 +9988,13 @@ local function Pages()\
 \9\9scripts = Roact.createElement(Scripts),\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children.options = Roact.createFragment({\
@@ -9613,21 +10004,27 @@ local function Pages()\
 \9\9misc = Roact.createElement(Misc),\
 \9})\
 \9if _child_1 then\
-\9\9_children[_length + 1] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 1] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9return Roact.createFragment(_children)\
 end\
 return Pages\
 ", '@'.."Havoc.views.Pages.Pages")) setfenv(fn, newEnv("Havoc.views.Pages.Pages")) return fn() end)
 
-newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts", "Havoc.views.Pages", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts", "Havoc.views.Pages", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.include.RuntimeLib)\
 local exports = {}\
 exports.default = TS.import(script, script, \"Scripts\").default\
 return exports\
 ", '@'.."Havoc.views.Pages.Scripts")) setfenv(fn, newEnv("Havoc.views.Pages.Scripts")) return fn() end)
 
-newModule("Content", "ModuleScript", "Havoc.views.Pages.Scripts.Content", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Content", "ModuleScript", "Havoc.views.Pages.Scripts.Content", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -9665,7 +10062,13 @@ local function Content(_param)\
 \9\9scaleFactor = scaleFactor,\
 \9})\
 \9if _child then\
-\9\9_children[_length + 1] = _child\
+\9\9if _child.elements ~= nil or _child.props ~= nil and _child.component ~= nil then\
+\9\9\9_children[_length + 1] = _child\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9local _child_1 = body ~= nil and Roact.createElement(HeaderTopLeft, {\
@@ -9673,7 +10076,13 @@ local function Content(_param)\
 \9\9scaleFactor = scaleFactor,\
 \9})\
 \9if _child_1 then\
-\9\9_children[_length + 1] = _child_1\
+\9\9if _child_1.elements ~= nil or _child_1.props ~= nil and _child_1.component ~= nil then\
+\9\9\9_children[_length + 1] = _child_1\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_1) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9local _child_2 = body ~= nil and (Roact.createElement(\"TextLabel\", {\
@@ -9694,7 +10103,13 @@ local function Content(_param)\
 \9\9}),\
 \9}))\
 \9if _child_2 then\
-\9\9_children[_length + 1] = _child_2\
+\9\9if _child_2.elements ~= nil or _child_2.props ~= nil and _child_2.component ~= nil then\
+\9\9\9_children[_length + 1] = _child_2\
+\9\9else\
+\9\9\9for _k, _v in ipairs(_child_2) do\
+\9\9\9\9_children[_length + _k] = _v\
+\9\9\9end\
+\9\9end\
 \9end\
 \9_length = #_children\
 \9_children[_length + 1] = Roact.createElement(\"TextLabel\", {\
@@ -9755,7 +10170,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Scripts.Content")) setfenv(fn, newEnv("Havoc.views.Pages.Scripts.Content")) return fn() end)
 
-newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("ScriptCard", "ModuleScript", "Havoc.views.Pages.Scripts.ScriptCard", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local useEffect = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact-hooked\").src).useEffect\
@@ -9791,7 +10206,13 @@ local function ScriptCard(_param)\
 \9local children = _param[Roact.Children]\
 \9local rerender = useForcedUpdate()\
 \9local isCurrentlyOpen = useIsPageOpen(DashboardPage.Scripts)\
-\9local isOpen = if useIsMount() then false else isCurrentlyOpen\
+\9local _result\
+\9if useIsMount() then\
+\9\9_result = false\
+\9else\
+\9\9_result = isCurrentlyOpen\
+\9end\
+\9local isOpen = _result\
 \9local isTransitioning = useDelayedUpdate(isOpen, index * 30)\
 \9useEffect(function()\
 \9\9return rerender()\
@@ -9809,14 +10230,14 @@ local function ScriptCard(_param)\
 \9\9anchor = anchorPoint,\
 \9\9size = size,\
 \9}\
-\9local _result\
+\9local _result_1\
 \9if isTransitioning then\
-\9\9_result = position\
+\9\9_result_1 = position\
 \9else\
 \9\9local _uDim2 = UDim2.new(0, 0, 1, 48 * 3 + 56)\
-\9\9_result = position + _uDim2\
+\9\9_result_1 = position + _uDim2\
 \9end\
-\9_attributes.position = useSpring(_result, {\
+\9_attributes.position = useSpring(_result_1, {\
 \9\9frequency = 2.2,\
 \9\9dampingRatio = 0.75,\
 \9})\
@@ -9824,7 +10245,7 @@ local function ScriptCard(_param)\
 \9local _length = #_children\
 \9local _attributes_1 = {\
 \9\9anchor = Vector2.new(0.5, 0.5),\
-\9\9size = useSpring(if isHovered and not isPressed then UDim2.new(1, 48, 1, 48) else scale(1, 1), {\
+\9\9size = useSpring(isHovered and not isPressed and UDim2.new(1, 48, 1, 48) or scale(1, 1), {\
 \9\9\9frequency = 2,\
 \9\9}),\
 \9\9position = scale(0.5, 0.5),\
@@ -9867,11 +10288,11 @@ local function ScriptCard(_param)\
 \9_children_1[_length_1 + 2] = Roact.createElement(Fill, {\
 \9\9radius = 16,\
 \9\9color = hex(\"#ffffff\"),\
-\9\9transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),\
+\9\9transparency = useSpring(isHovered and 0 or 1, shineSpringOptions),\
 \9}, {\
 \9\9Roact.createElement(\"UIGradient\", {\
 \9\9\9Transparency = NumberSequence.new(0.75, 1),\
-\9\9\9Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),\
+\9\9\9Offset = useSpring(isHovered and Vector2.new(0, 0) or Vector2.new(-1, -1), shineSpringOptions),\
 \9\9\9Rotation = 45,\
 \9\9}),\
 \9})\
@@ -9879,18 +10300,18 @@ local function ScriptCard(_param)\
 \9\9radius = 18,\
 \9\9size = 3,\
 \9\9color = hex(\"#ffffff\"),\
-\9\9transparency = useSpring(if isHovered then 0 else 1, shineSpringOptions),\
+\9\9transparency = useSpring(isHovered and 0 or 1, shineSpringOptions),\
 \9}, {\
 \9\9Roact.createElement(\"UIGradient\", {\
 \9\9\9Transparency = NumberSequence.new(0.7, 0.9),\
-\9\9\9Offset = useSpring(if isHovered then Vector2.new(0, 0) else Vector2.new(-1, -1), shineSpringOptions),\
+\9\9\9Offset = useSpring(isHovered and Vector2.new(0, 0) or Vector2.new(-1, -1), shineSpringOptions),\
 \9\9\9Rotation = 45,\
 \9\9}),\
 \9})\
 \9_children_1[_length_1 + 4] = Roact.createElement(Border, {\
 \9\9color = hex(\"#ffffff\"),\
 \9\9radius = 16,\
-\9\9transparency = useSpring(if isHovered then 1 else 0.8, {}),\
+\9\9transparency = useSpring(isHovered and 1 or 0.8, {}),\
 \9})\
 \9_children[_length + 1] = Roact.createElement(Canvas, _attributes_1, _children_1)\
 \9_children[_length + 2] = Roact.createElement(\"TextButton\", {\
@@ -9930,7 +10351,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Scripts.ScriptCard")) setfenv(fn, newEnv("Havoc.views.Pages.Scripts.ScriptCard")) return fn() end)
 
-newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts.Scripts", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("Scripts", "ModuleScript", "Havoc.views.Pages.Scripts.Scripts", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local TS = require(script.Parent.Parent.Parent.Parent.include.RuntimeLib)\
 local Roact = TS.import(script, TS.getModule(script, \"@rbxts\", \"roact\").src)\
 local Canvas = TS.import(script, script.Parent.Parent.Parent.Parent, \"components\", \"Canvas\")\
@@ -10108,7 +10529,7 @@ return {\
 }\
 ", '@'.."Havoc.views.Pages.Scripts.Scripts")) setfenv(fn, newEnv("Havoc.views.Pages.Scripts.Scripts")) return fn() end)
 
-newModule("constants", "ModuleScript", "Havoc.views.Pages.Scripts.constants", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("--Compiled with roblox-ts v1.3.3\
+newModule("constants", "ModuleScript", "Havoc.views.Pages.Scripts.constants", "Havoc.views.Pages.Scripts", function () local fn = assert(loadstring("-- Compiled with roblox-ts v1.2.7\
 local BASE_WINDOW_HEIGHT = 880\
 local BASE_WINDOW_WIDTH = 1824\
 local BASE_PADDING = 48\
@@ -10128,22 +10549,7 @@ newModule("Promise", "ModuleScript", "Havoc.include.Promise", "Havoc.include", f
 local ERROR_NON_PROMISE_IN_LIST = \"Non-promise value passed into %s at index %s\"\
 local ERROR_NON_LIST = \"Please pass a list of promises to %s\"\
 local ERROR_NON_FUNCTION = \"Please pass a handler function to %s!\"\
-local MODE_KEY_METATABLE = { __mode = \"k\" }\
-\
-local function isCallable(value)\
-\9if type(value) == \"function\" then\
-\9\9return true\
-\9end\
-\
-\9if type(value) == \"table\" then\
-\9\9local metatable = getmetatable(value)\
-\9\9if metatable and type(rawget(metatable, \"__call\")) == \"function\" then\
-\9\9\9return true\
-\9\9end\
-\9end\
-\
-\9return false\
-end\
+local MODE_KEY_METATABLE = {__mode = \"k\"}\
 \
 --[[\
 \9Creates an enum dictionary with some metamethods to prevent common mistakes.\
@@ -10165,15 +10571,12 @@ local function makeEnum(enumName, members)\
 \9})\
 end\
 \
---[=[\
+--[[\
 \9An object to represent runtime errors that occur during execution.\
 \9Promises that experience an error like this will be rejected with\
 \9an instance of this object.\
-\
-\9@class Error\
-]=]\
-local Error\
-do\
+]]\
+local Error do\
 \9Error = {\
 \9\9Kind = makeEnum(\"Promise.Error.Kind\", {\
 \9\9\9\"ExecutionError\",\
@@ -10239,13 +10642,10 @@ do\
 \9\9}\
 \
 \9\9for _, runtimeError in ipairs(self:getErrorChain()) do\
-\9\9\9table.insert(\
-\9\9\9\9errorStrings,\
-\9\9\9\9table.concat({\
-\9\9\9\9\9runtimeError.trace or runtimeError.error,\
-\9\9\9\9\9runtimeError.context,\
-\9\9\9\9}, \"\\n\")\
-\9\9\9)\
+\9\9\9table.insert(errorStrings, table.concat({\
+\9\9\9\9runtimeError.trace or runtimeError.error,\
+\9\9\9\9runtimeError.context,\
+\9\9\9}, \"\\n\"))\
 \9\9end\
 \
 \9\9return table.concat(errorStrings, \"\\n\")\
@@ -10268,8 +10668,9 @@ local function packResult(success, ...)\
 \9return success, select(\"#\", ...), { ... }\
 end\
 \
+\
 local function makeErrorHandler(traceback)\
-\9assert(traceback ~= nil, \"traceback is nil\")\
+\9assert(traceback ~= nil)\
 \
 \9return function(err)\
 \9\9-- If the error object is already a table, forward it directly.\
@@ -10315,41 +10716,27 @@ local function isEmpty(t)\
 \9return next(t) == nil\
 end\
 \
---[=[\
-\9An enum value used to represent the Promise's status.\
-\9@interface Status\
-\9@tag enum\
-\9@within Promise\
-\9.Started \"Started\" -- The Promise is executing, and not settled yet.\
-\9.Resolved \"Resolved\" -- The Promise finished successfully.\
-\9.Rejected \"Rejected\" -- The Promise was rejected.\
-\9.Cancelled \"Cancelled\" -- The Promise was cancelled before it finished.\
-]=]\
---[=[\
-\9@prop Status Status\
-\9@within Promise\
-\9@readonly\
-\9@tag enums\
-\9A table containing all members of the `Status` enum, e.g., `Promise.Status.Resolved`.\
-]=]\
---[=[\
-\9A Promise is an object that represents a value that will exist in the future, but doesn't right now.\
-\9Promises allow you to then attach callbacks that can run once the value becomes available (known as *resolving*),\
-\9or if an error has occurred (known as *rejecting*).\
-\
-\9@class Promise\
-\9@__index prototype\
-]=]\
 local Promise = {\
 \9Error = Error,\
-\9Status = makeEnum(\"Promise.Status\", { \"Started\", \"Resolved\", \"Rejected\", \"Cancelled\" }),\
+\9Status = makeEnum(\"Promise.Status\", {\"Started\", \"Resolved\", \"Rejected\", \"Cancelled\"}),\
 \9_getTime = os.clock,\
 \9_timeEvent = game:GetService(\"RunService\").Heartbeat,\
-\9_unhandledRejectionCallbacks = {},\
 }\
 Promise.prototype = {}\
 Promise.__index = Promise.prototype\
 \
+--[[\
+\9Constructs a new Promise with the given initializing callback.\
+\
+\9This is generally only called when directly wrapping a non-promise API into\
+\9a promise-based version.\
+\
+\9The callback will receive 'resolve' and 'reject' methods, used to start\
+\9invoking the promise chain.\
+\
+\9Second parameter, parent, is used internally for tracking the \"parent\" in a\
+\9promise chain. External code shouldn't need to worry about this.\
+]]\
 function Promise._new(traceback, callback, parent)\
 \9if parent ~= nil and not Promise.is(parent) then\
 \9\9error(\"Argument #2 to Promise.new must be a promise or nil\", 2)\
@@ -10416,7 +10803,13 @@ function Promise._new(traceback, callback, parent)\
 \9end\
 \
 \9coroutine.wrap(function()\
-\9\9local ok, _, result = runExecutor(self._source, callback, resolve, reject, onCancel)\
+\9\9local ok, _, result = runExecutor(\
+\9\9\9self._source,\
+\9\9\9callback,\
+\9\9\9resolve,\
+\9\9\9reject,\
+\9\9\9onCancel\
+\9\9)\
 \
 \9\9if not ok then\
 \9\9\9reject(result[1])\
@@ -10426,72 +10819,25 @@ function Promise._new(traceback, callback, parent)\
 \9return self\
 end\
 \
---[=[\
-\9Construct a new Promise that will be resolved or rejected with the given callbacks.\
-\
-\9If you `resolve` with a Promise, it will be chained onto.\
-\
-\9You can safely yield within the executor function and it will not block the creating thread.\
-\
-\9```lua\
-\9local myFunction()\
-\9\9return Promise.new(function(resolve, reject, onCancel)\
-\9\9\9wait(1)\
-\9\9\9resolve(\"Hello world!\")\
-\9\9end)\
-\9end\
-\
-\9myFunction():andThen(print)\
-\9```\
-\
-\9You do not need to use `pcall` within a Promise. Errors that occur during execution will be caught and turned into a rejection automatically. If `error()` is called with a table, that table will be the rejection value. Otherwise, string errors will be converted into `Promise.Error(Promise.Error.Kind.ExecutionError)` objects for tracking debug information.\
-\
-\9You may register an optional cancellation hook by using the `onCancel` argument:\
-\
-\9* This should be used to abort any ongoing operations leading up to the promise being settled.\
-\9* Call the `onCancel` function with a function callback as its only argument to set a hook which will in turn be called when/if the promise is cancelled.\
-\9* `onCancel` returns `true` if the Promise was already cancelled when you called `onCancel`.\
-\9* Calling `onCancel` with no argument will not override a previously set cancellation hook, but it will still return `true` if the Promise is currently cancelled.\
-\9* You can set the cancellation hook at any time before resolving.\
-\9* When a promise is cancelled, calls to `resolve` or `reject` will be ignored, regardless of if you set a cancellation hook or not.\
-\
-\9@param executor (resolve: (...: any) -> (), reject: (...: any) -> (), onCancel: (abortHandler?: () -> ()) -> boolean) -> ()\
-\9@return Promise\
-]=]\
 function Promise.new(executor)\
 \9return Promise._new(debug.traceback(nil, 2), executor)\
 end\
 \
 function Promise:__tostring()\
-\9return string.format(\"Promise(%s)\", self._status)\
+\9return string.format(\"Promise(%s)\", self:getStatus())\
 end\
 \
---[=[\
-\9The same as [Promise.new](/api/Promise#new), except execution begins after the next `Heartbeat` event.\
-\
-\9This is a spiritual replacement for `spawn`, but it does not suffer from the same [issues](https://eryn.io/gist/3db84579866c099cdd5bb2ff37947cec) as `spawn`.\
-\
-\9```lua\
-\9local function waitForChild(instance, childName, timeout)\
-\9  return Promise.defer(function(resolve, reject)\
-\9\9local child = instance:WaitForChild(childName, timeout)\
-\
-\9\9;(child and resolve or reject)(child)\
-\9  end)\
-\9end\
-\9```\
-\
-\9@param executor (resolve: (...: any) -> (), reject: (...: any) -> (), onCancel: (abortHandler?: () -> ()) -> boolean) -> ()\
-\9@return Promise\
-]=]\
-function Promise.defer(executor)\
+--[[\
+\9Promise.new, except pcall on a new thread is automatic.\
+]]\
+function Promise.defer(callback)\
 \9local traceback = debug.traceback(nil, 2)\
 \9local promise\
 \9promise = Promise._new(traceback, function(resolve, reject, onCancel)\
 \9\9local connection\
 \9\9connection = Promise._timeEvent:Connect(function()\
 \9\9\9connection:Disconnect()\
-\9\9\9local ok, _, result = runExecutor(traceback, executor, resolve, reject, onCancel)\
+\9\9\9local ok, _, result = runExecutor(traceback, callback, resolve, reject, onCancel)\
 \
 \9\9\9if not ok then\
 \9\9\9\9reject(result[1])\
@@ -10505,28 +10851,9 @@ end\
 -- Backwards compatibility\
 Promise.async = Promise.defer\
 \
---[=[\
-\9Creates an immediately resolved Promise with the given value.\
-\
-\9```lua\
-\9-- Example using Promise.resolve to deliver cached values:\
-\9function getSomething(name)\
-\9\9if cache[name] then\
-\9\9\9return Promise.resolve(cache[name])\
-\9\9else\
-\9\9\9return Promise.new(function(resolve, reject)\
-\9\9\9\9local thing = getTheThing()\
-\9\9\9\9cache[name] = thing\
-\
-\9\9\9\9resolve(thing)\
-\9\9\9end)\
-\9\9end\
-\9end\
-\9```\
-\
-\9@param ... any\
-\9@return Promise<...any>\
-]=]\
+--[[\
+\9Create a promise that represents the immediately resolved value.\
+]]\
 function Promise.resolve(...)\
 \9local length, values = pack(...)\
 \9return Promise._new(debug.traceback(nil, 2), function(resolve)\
@@ -10534,16 +10861,9 @@ function Promise.resolve(...)\
 \9end)\
 end\
 \
---[=[\
-\9Creates an immediately rejected Promise with the given value.\
-\
-\9:::caution\
-\9Something needs to consume this rejection (i.e. `:catch()` it), otherwise it will emit an unhandled Promise rejection warning on the next frame. Thus, you should not create and store rejected Promises for later use. Only create them on-demand as needed.\
-\9:::\
-\
-\9@param ... any\
-\9@return Promise<...any>\
-]=]\
+--[[\
+\9Create a promise that represents the immediately rejected value.\
+]]\
 function Promise.reject(...)\
 \9local length, values = pack(...)\
 \9return Promise._new(debug.traceback(nil, 2), function(_, reject)\
@@ -10563,31 +10883,11 @@ function Promise._try(traceback, callback, ...)\
 \9end)\
 end\
 \
---[=[\
-\9Begins a Promise chain, calling a function and returning a Promise resolving with its return value. If the function errors, the returned Promise will be rejected with the error. You can safely yield within the Promise.try callback.\
-\
-\9:::info\
-\9`Promise.try` is similar to [Promise.promisify](#promisify), except the callback is invoked immediately instead of returning a new function.\
-\9:::\
-\
-\9```lua\
-\9Promise.try(function()\
-\9\9return math.random(1, 2) == 1 and \"ok\" or error(\"Oh an error!\")\
-\9end)\
-\9\9:andThen(function(text)\
-\9\9\9print(text)\
-\9\9end)\
-\9\9:catch(function(err)\
-\9\9\9warn(\"Something went wrong\")\
-\9\9end)\
-\9```\
-\
-\9@param callback (...: T...) -> ...any\
-\9@param ... T... -- Additional arguments passed to `callback`\
-\9@return Promise\
-]=]\
-function Promise.try(callback, ...)\
-\9return Promise._try(debug.traceback(nil, 2), callback, ...)\
+--[[\
+\9Begins a Promise chain, turning synchronous errors into rejections.\
+]]\
+function Promise.try(...)\
+\9return Promise._try(debug.traceback(nil, 2), ...)\
 end\
 \
 --[[\
@@ -10656,18 +10956,21 @@ function Promise._all(traceback, promises, amount)\
 \9\9-- We can assume the values inside `promises` are all promises since we\
 \9\9-- checked above.\
 \9\9for i, promise in ipairs(promises) do\
-\9\9\9newPromises[i] = promise:andThen(function(...)\
-\9\9\9\9resolveOne(i, ...)\
-\9\9\9end, function(...)\
-\9\9\9\9rejectedCount = rejectedCount + 1\
+\9\9\9newPromises[i] = promise:andThen(\
+\9\9\9\9function(...)\
+\9\9\9\9\9resolveOne(i, ...)\
+\9\9\9\9end,\
+\9\9\9\9function(...)\
+\9\9\9\9\9rejectedCount = rejectedCount + 1\
 \
-\9\9\9\9if amount == nil or #promises - rejectedCount < amount then\
-\9\9\9\9\9cancel()\
-\9\9\9\9\9done = true\
+\9\9\9\9\9if amount == nil or #promises - rejectedCount < amount then\
+\9\9\9\9\9\9cancel()\
+\9\9\9\9\9\9done = true\
 \
-\9\9\9\9\9reject(...)\
+\9\9\9\9\9\9reject(...)\
+\9\9\9\9\9end\
 \9\9\9\9end\
-\9\9\9end)\
+\9\9\9)\
 \9\9end\
 \
 \9\9if done then\
@@ -10676,138 +10979,34 @@ function Promise._all(traceback, promises, amount)\
 \9end)\
 end\
 \
---[=[\
-\9Accepts an array of Promises and returns a new promise that:\
-\9* is resolved after all input promises resolve.\
-\9* is rejected if *any* input promises reject.\
-\
-\9:::info\
-\9Only the first return value from each promise will be present in the resulting array.\
-\9:::\
-\
-\9After any input Promise rejects, all other input Promises that are still pending will be cancelled if they have no other consumers.\
-\
-\9```lua\
-\9local promises = {\
-\9\9returnsAPromise(\"example 1\"),\
-\9\9returnsAPromise(\"example 2\"),\
-\9\9returnsAPromise(\"example 3\"),\
-\9}\
-\
-\9return Promise.all(promises)\
-\9```\
-\
-\9@param promises {Promise<T>}\
-\9@return Promise<{T}>\
-]=]\
 function Promise.all(promises)\
 \9return Promise._all(debug.traceback(nil, 2), promises)\
 end\
 \
---[=[\
-\9Folds an array of values or promises into a single value. The array is traversed sequentially.\
-\
-\9The reducer function can return a promise or value directly. Each iteration receives the resolved value from the previous, and the first receives your defined initial value.\
-\
-\9The folding will stop at the first rejection encountered.\
-\9```lua\
-\9local basket = {\"blueberry\", \"melon\", \"pear\", \"melon\"}\
-\9Promise.fold(basket, function(cost, fruit)\
-\9\9if fruit == \"blueberry\" then\
-\9\9\9return cost -- blueberries are free!\
-\9\9else\
-\9\9\9-- call a function that returns a promise with the fruit price\
-\9\9\9return fetchPrice(fruit):andThen(function(fruitCost)\
-\9\9\9\9return cost + fruitCost\
-\9\9\9end)\
-\9\9end\
-\9end, 0)\
-\9```\
-\
-\9@since v3.1.0\
-\9@param list {T | Promise<T>}\
-\9@param reducer (accumulator: U, value: T, index: number) -> U | Promise<U>\
-\9@param initialValue U\
-]=]\
-function Promise.fold(list, reducer, initialValue)\
+function Promise.fold(list, callback, initialValue)\
 \9assert(type(list) == \"table\", \"Bad argument #1 to Promise.fold: must be a table\")\
-\9assert(isCallable(reducer), \"Bad argument #2 to Promise.fold: must be a function\")\
+\9assert(type(callback) == \"function\", \"Bad argument #2 to Promise.fold: must be a function\")\
 \
 \9local accumulator = Promise.resolve(initialValue)\
 \9return Promise.each(list, function(resolvedElement, i)\
 \9\9accumulator = accumulator:andThen(function(previousValueResolved)\
-\9\9\9return reducer(previousValueResolved, resolvedElement, i)\
+\9\9\9return callback(previousValueResolved, resolvedElement, i)\
 \9\9end)\
-\9end):andThen(function()\
-\9\9return accumulator\
-\9end)\
+\9end):andThenReturn(accumulator)\
 end\
 \
---[=[\
-\9Accepts an array of Promises and returns a Promise that is resolved as soon as `count` Promises are resolved from the input array. The resolved array values are in the order that the Promises resolved in. When this Promise resolves, all other pending Promises are cancelled if they have no other consumers.\
+function Promise.some(promises, amount)\
+\9assert(type(amount) == \"number\", \"Bad argument #2 to Promise.some: must be a number\")\
 \
-\9`count` 0 results in an empty array. The resultant array will never have more than `count` elements.\
-\
-\9```lua\
-\9local promises = {\
-\9\9returnsAPromise(\"example 1\"),\
-\9\9returnsAPromise(\"example 2\"),\
-\9\9returnsAPromise(\"example 3\"),\
-\9}\
-\
-\9return Promise.some(promises, 2) -- Only resolves with first 2 promises to resolve\
-\9```\
-\
-\9@param promises {Promise<T>}\
-\9@param count number\
-\9@return Promise<{T}>\
-]=]\
-function Promise.some(promises, count)\
-\9assert(type(count) == \"number\", \"Bad argument #2 to Promise.some: must be a number\")\
-\
-\9return Promise._all(debug.traceback(nil, 2), promises, count)\
+\9return Promise._all(debug.traceback(nil, 2), promises, amount)\
 end\
 \
---[=[\
-\9Accepts an array of Promises and returns a Promise that is resolved as soon as *any* of the input Promises resolves. It will reject only if *all* input Promises reject. As soon as one Promises resolves, all other pending Promises are cancelled if they have no other consumers.\
-\
-\9Resolves directly with the value of the first resolved Promise. This is essentially [[Promise.some]] with `1` count, except the Promise resolves with the value directly instead of an array with one element.\
-\
-\9```lua\
-\9local promises = {\
-\9\9returnsAPromise(\"example 1\"),\
-\9\9returnsAPromise(\"example 2\"),\
-\9\9returnsAPromise(\"example 3\"),\
-\9}\
-\
-\9return Promise.any(promises) -- Resolves with first value to resolve (only rejects if all 3 rejected)\
-\9```\
-\
-\9@param promises {Promise<T>}\
-\9@return Promise<T>\
-]=]\
 function Promise.any(promises)\
 \9return Promise._all(debug.traceback(nil, 2), promises, 1):andThen(function(values)\
 \9\9return values[1]\
 \9end)\
 end\
 \
---[=[\
-\9Accepts an array of Promises and returns a new Promise that resolves with an array of in-place Statuses when all input Promises have settled. This is equivalent to mapping `promise:finally` over the array of Promises.\
-\
-\9```lua\
-\9local promises = {\
-\9\9returnsAPromise(\"example 1\"),\
-\9\9returnsAPromise(\"example 2\"),\
-\9\9returnsAPromise(\"example 3\"),\
-\9}\
-\
-\9return Promise.allSettled(promises)\
-\9```\
-\
-\9@param promises {Promise<T>}\
-\9@return Promise<{Status}>\
-]=]\
 function Promise.allSettled(promises)\
 \9if type(promises) ~= \"table\" then\
 \9\9error(string.format(ERROR_NON_LIST, \"Promise.allSettled\"), 2)\
@@ -10855,37 +11054,19 @@ function Promise.allSettled(promises)\
 \9\9-- We can assume the values inside `promises` are all promises since we\
 \9\9-- checked above.\
 \9\9for i, promise in ipairs(promises) do\
-\9\9\9newPromises[i] = promise:finally(function(...)\
-\9\9\9\9resolveOne(i, ...)\
-\9\9\9end)\
+\9\9\9newPromises[i] = promise:finally(\
+\9\9\9\9function(...)\
+\9\9\9\9\9resolveOne(i, ...)\
+\9\9\9\9end\
+\9\9\9)\
 \9\9end\
 \9end)\
 end\
 \
---[=[\
-\9Accepts an array of Promises and returns a new promise that is resolved or rejected as soon as any Promise in the array resolves or rejects.\
-\
-\9:::warning\
-\9If the first Promise to settle from the array settles with a rejection, the resulting Promise from `race` will reject.\
-\
-\9If you instead want to tolerate rejections, and only care about at least one Promise resolving, you should use [Promise.any](#any) or [Promise.some](#some) instead.\
-\9:::\
-\
-\9All other Promises that don't win the race will be cancelled if they have no other consumers.\
-\
-\9```lua\
-\9local promises = {\
-\9\9returnsAPromise(\"example 1\"),\
-\9\9returnsAPromise(\"example 2\"),\
-\9\9returnsAPromise(\"example 3\"),\
-\9}\
-\
-\9return Promise.race(promises) -- Only returns 1st value to resolve or reject\
-\9```\
-\
-\9@param promises {Promise<T>}\
-\9@return Promise<T>\
-]=]\
+--[[\
+\9Races a set of Promises and returns the first one that resolves,\
+\9cancelling the others.\
+]]\
 function Promise.race(promises)\
 \9assert(type(promises) == \"table\", string.format(ERROR_NON_LIST, \"Promise.race\"))\
 \
@@ -10904,7 +11085,7 @@ function Promise.race(promises)\
 \9\9end\
 \
 \9\9local function finalize(callback)\
-\9\9\9return function(...)\
+\9\9\9return function (...)\
 \9\9\9\9cancel()\
 \9\9\9\9finished = true\
 \9\9\9\9return callback(...)\
@@ -10925,65 +11106,17 @@ function Promise.race(promises)\
 \9end)\
 end\
 \
---[=[\
-\9Iterates serially over the given an array of values, calling the predicate callback on each value before continuing.\
+--[[\
+\9Iterates serially over the given an array of values, calling the predicate callback on each before continuing.\
+\9If the predicate returns a Promise, we wait for that Promise to resolve before continuing to the next item\
+\9in the array. If the Promise the predicate returns rejects, the Promise from Promise.each is also rejected with\
+\9the same value.\
 \
-\9If the predicate returns a Promise, we wait for that Promise to resolve before moving on to the next item\
-\9in the array.\
-\
-\9:::info\
-\9`Promise.each` is similar to `Promise.all`, except the Promises are ran in order instead of all at once.\
-\
-\9But because Promises are eager, by the time they are created, they're already running. Thus, we need a way to defer creation of each Promise until a later time.\
-\
-\9The predicate function exists as a way for us to operate on our data instead of creating a new closure for each Promise. If you would prefer, you can pass in an array of functions, and in the predicate, call the function and return its return value.\
-\9:::\
-\
-\9```lua\
-\9Promise.each({\
-\9\9\"foo\",\
-\9\9\"bar\",\
-\9\9\"baz\",\
-\9\9\"qux\"\
-\9}, function(value, index)\
-\9\9return Promise.delay(1):andThen(function()\
-\9\9print((\"%d) Got %s!\"):format(index, value))\
-\9\9end)\
-\9end)\
-\
-\9--[[\
-\9\9(1 second passes)\
-\9\9> 1) Got foo!\
-\9\9(1 second passes)\
-\9\9> 2) Got bar!\
-\9\9(1 second passes)\
-\9\9> 3) Got baz!\
-\9\9(1 second passes)\
-\9\9> 4) Got qux!\
-\9]]\
-\9```\
-\
-\9If the Promise a predicate returns rejects, the Promise from `Promise.each` is also rejected with the same value.\
-\
-\9If the array of values contains a Promise, when we get to that point in the list, we wait for the Promise to resolve before calling the predicate with the value.\
-\
-\9If a Promise in the array of values is already Rejected when `Promise.each` is called, `Promise.each` rejects with that value immediately (the predicate callback will never be called even once). If a Promise in the list is already Cancelled when `Promise.each` is called, `Promise.each` rejects with `Promise.Error(Promise.Error.Kind.AlreadyCancelled`). If a Promise in the array of values is Started at first, but later rejects, `Promise.each` will reject with that value and iteration will not continue once iteration encounters that value.\
-\
-\9Returns a Promise containing an array of the returned/resolved values from the predicate for each item in the array of values.\
-\
-\9If this Promise returned from `Promise.each` rejects or is cancelled for any reason, the following are true:\
-\9- Iteration will not continue.\
-\9- Any Promises within the array of values will now be cancelled if they have no other consumers.\
-\9- The Promise returned from the currently active predicate will be cancelled if it hasn't resolved yet.\
-\
-\9@since 3.0.0\
-\9@param list {T | Promise<T>}\
-\9@param predicate (value: T, index: number) -> U | Promise<U>\
-\9@return Promise<{U}>\
-]=]\
+\9Returns a Promise containing an array of the return values from the predicate for each item in the original list.\
+]]\
 function Promise.each(list, predicate)\
 \9assert(type(list) == \"table\", string.format(ERROR_NON_LIST, \"Promise.each\"))\
-\9assert(isCallable(predicate), string.format(ERROR_NON_FUNCTION, \"Promise.each\"))\
+\9assert(type(predicate) == \"function\", string.format(ERROR_NON_FUNCTION, \"Promise.each\"))\
 \
 \9return Promise._new(debug.traceback(nil, 2), function(resolve, reject, onCancel)\
 \9\9local results = {}\
@@ -11074,12 +11207,9 @@ function Promise.each(list, predicate)\
 \9end)\
 end\
 \
---[=[\
-\9Checks whether the given object is a Promise via duck typing. This only checks if the object is a table and has an `andThen` method.\
-\
-\9@param object any\
-\9@return boolean -- `true` if the given `object` is a Promise.\
-]=]\
+--[[\
+\9Is the given object a Promise instance?\
+]]\
 function Promise.is(object)\
 \9if type(object) ~= \"table\" then\
 \9\9return false\
@@ -11092,11 +11222,11 @@ function Promise.is(object)\
 \9\9return true\
 \9elseif objectMetatable == nil then\
 \9\9-- No metatable, but we should still chain onto tables with andThen methods\
-\9\9return isCallable(object.andThen)\
+\9\9return type(object.andThen) == \"function\"\
 \9elseif\
 \9\9type(objectMetatable) == \"table\"\
 \9\9and type(rawget(objectMetatable, \"__index\")) == \"table\"\
-\9\9and isCallable(rawget(rawget(objectMetatable, \"__index\"), \"andThen\"))\
+\9\9and type(rawget(rawget(objectMetatable, \"__index\"), \"andThen\")) == \"function\"\
 \9then\
 \9\9-- Maybe this came from a different or older Promise library.\
 \9\9return true\
@@ -11105,54 +11235,18 @@ function Promise.is(object)\
 \9return false\
 end\
 \
---[=[\
-\9Wraps a function that yields into one that returns a Promise.\
-\
-\9Any errors that occur while executing the function will be turned into rejections.\
-\
-\9:::info\
-\9`Promise.promisify` is similar to [Promise.try](#try), except the callback is returned as a callable function instead of being invoked immediately.\
-\9:::\
-\
-\9```lua\
-\9local sleep = Promise.promisify(wait)\
-\
-\9sleep(1):andThen(print)\
-\9```\
-\
-\9```lua\
-\9local isPlayerInGroup = Promise.promisify(function(player, groupId)\
-\9\9return player:IsInGroup(groupId)\
-\9end)\
-\9```\
-\
-\9@param callback (...: any) -> ...any\
-\9@return (...: any) -> Promise\
-]=]\
+--[[\
+\9Converts a yielding function into a Promise-returning one.\
+]]\
 function Promise.promisify(callback)\
 \9return function(...)\
 \9\9return Promise._try(debug.traceback(nil, 2), callback, ...)\
 \9end\
 end\
 \
---[=[\
-\9Returns a Promise that resolves after `seconds` seconds have passed. The Promise resolves with the actual amount of time that was waited.\
-\
-\9This function is **not** a wrapper around `wait`. `Promise.delay` uses a custom scheduler which provides more accurate timing. As an optimization, cancelling this Promise instantly removes the task from the scheduler.\
-\
-\9:::warning\
-\9Passing `NaN`, infinity, or a number less than 1/60 is equivalent to passing 1/60.\
-\9:::\
-\
-\9```lua\
-\9\9Promise.delay(5):andThenCall(print, \"This prints after 5 seconds\")\
-\9```\
-\
-\9@function delay\
-\9@within Promise\
-\9@param seconds number\
-\9@return Promise<number>\
-]=]\
+--[[\
+\9Creates a Promise that resolves after given number of seconds.\
+]]\
 do\
 \9-- uses a sorted doubly linked list (queue) to achieve O(1) remove operations and O(n) for insert\
 \
@@ -11251,44 +11345,9 @@ do\
 \9end\
 end\
 \
---[=[\
-\9Returns a new Promise that resolves if the chained Promise resolves within `seconds` seconds, or rejects if execution time exceeds `seconds`. The chained Promise will be cancelled if the timeout is reached.\
-\
-\9Rejects with `rejectionValue` if it is non-nil. If a `rejectionValue` is not given, it will reject with a `Promise.Error(Promise.Error.Kind.TimedOut)`. This can be checked with [[Error.isKind]].\
-\
-\9```lua\
-\9getSomething():timeout(5):andThen(function(something)\
-\9\9-- got something and it only took at max 5 seconds\
-\9end):catch(function(e)\
-\9\9-- Either getting something failed or the time was exceeded.\
-\
-\9\9if Promise.Error.isKind(e, Promise.Error.Kind.TimedOut) then\
-\9\9\9warn(\"Operation timed out!\")\
-\9\9else\
-\9\9\9warn(\"Operation encountered an error!\")\
-\9\9end\
-\9end)\
-\9```\
-\
-\9Sugar for:\
-\
-\9```lua\
-\9Promise.race({\
-\9\9Promise.delay(seconds):andThen(function()\
-\9\9\9return Promise.reject(\
-\9\9\9\9rejectionValue == nil\
-\9\9\9\9and Promise.Error.new({ kind = Promise.Error.Kind.TimedOut })\
-\9\9\9\9or rejectionValue\
-\9\9\9)\
-\9\9end),\
-\9\9promise\
-\9})\
-\9```\
-\
-\9@param seconds number\
-\9@param rejectionValue? any -- The value to reject with if the timeout is reached\
-\9@return Promise\
-]=]\
+--[[\
+\9Rejects the promise after `seconds` seconds.\
+]]\
 function Promise.prototype:timeout(seconds, rejectionValue)\
 \9local traceback = debug.traceback(nil, 2)\
 \
@@ -11308,11 +11367,6 @@ function Promise.prototype:timeout(seconds, rejectionValue)\
 \9})\
 end\
 \
---[=[\
-\9Returns the current Promise status.\
-\
-\9@return Status\
-]=]\
 function Promise.prototype:getStatus()\
 \9return self._status\
 end\
@@ -11332,12 +11386,22 @@ function Promise.prototype:_andThen(traceback, successHandler, failureHandler)\
 \
 \9\9local successCallback = resolve\
 \9\9if successHandler then\
-\9\9\9successCallback = createAdvancer(traceback, successHandler, resolve, reject)\
+\9\9\9successCallback = createAdvancer(\
+\9\9\9\9traceback,\
+\9\9\9\9successHandler,\
+\9\9\9\9resolve,\
+\9\9\9\9reject\
+\9\9\9)\
 \9\9end\
 \
 \9\9local failureCallback = reject\
 \9\9if failureHandler then\
-\9\9\9failureCallback = createAdvancer(traceback, failureHandler, resolve, reject)\
+\9\9\9failureCallback = createAdvancer(\
+\9\9\9\9traceback,\
+\9\9\9\9failureHandler,\
+\9\9\9\9resolve,\
+\9\9\9\9reject\
+\9\9\9)\
 \9\9end\
 \
 \9\9if self._status == Promise.Status.Started then\
@@ -11362,64 +11426,38 @@ function Promise.prototype:_andThen(traceback, successHandler, failureHandler)\
 \9end, self)\
 end\
 \
---[=[\
-\9Chains onto an existing Promise and returns a new Promise.\
-\
-\9:::warning\
-\9Within the failure handler, you should never assume that the rejection value is a string. Some rejections within the Promise library are represented by [[Error]] objects. If you want to treat it as a string for debugging, you should call `tostring` on it first.\
-\9:::\
-\
-\9Return a Promise from the success or failure handler and it will be chained onto.\
-\
-\9@param successHandler (...: any) -> ...any\
-\9@param failureHandler? (...: any) -> ...any\
-\9@return Promise<...any>\
-]=]\
 function Promise.prototype:andThen(successHandler, failureHandler)\
-\9assert(successHandler == nil or isCallable(successHandler), string.format(ERROR_NON_FUNCTION, \"Promise:andThen\"))\
-\9assert(failureHandler == nil or isCallable(failureHandler), string.format(ERROR_NON_FUNCTION, \"Promise:andThen\"))\
+\9assert(\
+\9\9successHandler == nil or type(successHandler) == \"function\",\
+\9\9string.format(ERROR_NON_FUNCTION, \"Promise:andThen\")\
+\9)\
+\9assert(\
+\9\9failureHandler == nil or type(failureHandler) == \"function\",\
+\9\9string.format(ERROR_NON_FUNCTION, \"Promise:andThen\")\
+\9)\
 \
 \9return self:_andThen(debug.traceback(nil, 2), successHandler, failureHandler)\
 end\
 \
---[=[\
-\9Shorthand for `Promise:andThen(nil, failureHandler)`.\
-\
-\9Returns a Promise that resolves if the `failureHandler` worked without encountering an additional error.\
-\
-\9:::warning\
-\9Within the failure handler, you should never assume that the rejection value is a string. Some rejections within the Promise library are represented by [[Error]] objects. If you want to treat it as a string for debugging, you should call `tostring` on it first.\
-\9:::\
-\
-\
-\9@param failureHandler (...: any) -> ...any\
-\9@return Promise<...any>\
-]=]\
-function Promise.prototype:catch(failureHandler)\
-\9assert(failureHandler == nil or isCallable(failureHandler), string.format(ERROR_NON_FUNCTION, \"Promise:catch\"))\
-\9return self:_andThen(debug.traceback(nil, 2), nil, failureHandler)\
+--[[\
+\9Used to catch any errors that may have occurred in the promise.\
+]]\
+function Promise.prototype:catch(failureCallback)\
+\9assert(\
+\9\9failureCallback == nil or type(failureCallback) == \"function\",\
+\9\9string.format(ERROR_NON_FUNCTION, \"Promise:catch\")\
+\9)\
+\9return self:_andThen(debug.traceback(nil, 2), nil, failureCallback)\
 end\
 \
---[=[\
-\9Similar to [Promise.andThen](#andThen), except the return value is the same as the value passed to the handler. In other words, you can insert a `:tap` into a Promise chain without affecting the value that downstream Promises receive.\
-\
-\9```lua\
-\9\9getTheValue()\
-\9\9:tap(print)\
-\9\9:andThen(function(theValue)\
-\9\9\9print(\"Got\", theValue, \"even though print returns nil!\")\
-\9\9end)\
-\9```\
-\
-\9If you return a Promise from the tap handler callback, its value will be discarded but `tap` will still wait until it resolves before passing the original value through.\
-\
-\9@param tapHandler (...: any) -> ...any\
-\9@return Promise<...any>\
-]=]\
-function Promise.prototype:tap(tapHandler)\
-\9assert(isCallable(tapHandler), string.format(ERROR_NON_FUNCTION, \"Promise:tap\"))\
+--[[\
+\9Like andThen, but the value passed into the handler is also the\
+\9value returned from the handler.\
+]]\
+function Promise.prototype:tap(tapCallback)\
+\9assert(type(tapCallback) == \"function\", string.format(ERROR_NON_FUNCTION, \"Promise:tap\"))\
 \9return self:_andThen(debug.traceback(nil, 2), function(...)\
-\9\9local callbackReturn = tapHandler(...)\
+\9\9local callbackReturn = tapCallback(...)\
 \
 \9\9if Promise.is(callbackReturn) then\
 \9\9\9local length, values = pack(...)\
@@ -11432,55 +11470,20 @@ function Promise.prototype:tap(tapHandler)\
 \9end)\
 end\
 \
---[=[\
-\9Attaches an `andThen` handler to this Promise that calls the given callback with the predefined arguments. The resolved value is discarded.\
-\
-\9```lua\
-\9\9promise:andThenCall(someFunction, \"some\", \"arguments\")\
-\9```\
-\
-\9This is sugar for\
-\
-\9```lua\
-\9\9promise:andThen(function()\
-\9\9return someFunction(\"some\", \"arguments\")\
-\9\9end)\
-\9```\
-\
-\9@param callback (...: any) -> any\
-\9@param ...? any -- Additional arguments which will be passed to `callback`\
-\9@return Promise\
-]=]\
+--[[\
+\9Calls a callback on `andThen` with specific arguments.\
+]]\
 function Promise.prototype:andThenCall(callback, ...)\
-\9assert(isCallable(callback), string.format(ERROR_NON_FUNCTION, \"Promise:andThenCall\"))\
+\9assert(type(callback) == \"function\", string.format(ERROR_NON_FUNCTION, \"Promise:andThenCall\"))\
 \9local length, values = pack(...)\
 \9return self:_andThen(debug.traceback(nil, 2), function()\
 \9\9return callback(unpack(values, 1, length))\
 \9end)\
 end\
 \
---[=[\
-\9Attaches an `andThen` handler to this Promise that discards the resolved value and returns the given value from it.\
-\
-\9```lua\
-\9\9promise:andThenReturn(\"some\", \"values\")\
-\9```\
-\
-\9This is sugar for\
-\
-\9```lua\
-\9\9promise:andThen(function()\
-\9\9\9return \"some\", \"values\"\
-\9\9end)\
-\9```\
-\
-\9:::caution\
-\9Promises are eager, so if you pass a Promise to `andThenReturn`, it will begin executing before `andThenReturn` is reached in the chain. Likewise, if you pass a Promise created from [[Promise.reject]] into `andThenReturn`, it's possible that this will trigger the unhandled rejection warning. If you need to return a Promise, it's usually best practice to use [[Promise.andThen]].\
-\9:::\
-\
-\9@param ... any -- Values to return from the function\
-\9@return Promise\
-]=]\
+--[[\
+\9Shorthand for an andThen handler that returns the given value.\
+]]\
 function Promise.prototype:andThenReturn(...)\
 \9local length, values = pack(...)\
 \9return self:_andThen(debug.traceback(nil, 2), function()\
@@ -11488,17 +11491,10 @@ function Promise.prototype:andThenReturn(...)\
 \9end)\
 end\
 \
---[=[\
-\9Cancels this promise, preventing the promise from resolving or rejecting. Does not do anything if the promise is already settled.\
-\
-\9Cancellations will propagate upwards and downwards through chained promises.\
-\
-\9Promises will only be cancelled if all of their consumers are also cancelled. This is to say that if you call `andThen` twice on the same promise, and you cancel only one of the child promises, it will not cancel the parent promise until the other child promise is also cancelled.\
-\
-\9```lua\
-\9\9promise:cancel()\
-\9```\
-]=]\
+--[[\
+\9Cancels the promise, disallowing it from rejecting or resolving, and calls\
+\9the cancellation hook if provided.\
+]]\
 function Promise.prototype:cancel()\
 \9if self._status ~= Promise.Status.Started then\
 \9\9return\
@@ -11550,7 +11546,12 @@ function Promise.prototype:_finally(traceback, finallyHandler, onlyOk)\
 \9return Promise._new(traceback, function(resolve, reject)\
 \9\9local finallyCallback = resolve\
 \9\9if finallyHandler then\
-\9\9\9finallyCallback = createAdvancer(traceback, finallyHandler, resolve, reject)\
+\9\9\9finallyCallback = createAdvancer(\
+\9\9\9\9traceback,\
+\9\9\9\9finallyHandler,\
+\9\9\9\9resolve,\
+\9\9\9\9reject\
+\9\9\9)\
 \9\9end\
 \
 \9\9if onlyOk then\
@@ -11574,77 +11575,28 @@ function Promise.prototype:_finally(traceback, finallyHandler, onlyOk)\
 \9end, self)\
 end\
 \
---[=[\
-\9Set a handler that will be called regardless of the promise's fate. The handler is called when the promise is resolved, rejected, *or* cancelled.\
-\
-\9Returns a new promise chained from this promise.\
-\
-\9:::caution\
-\9If the Promise is cancelled, any Promises chained off of it with `andThen` won't run. Only Promises chained with `finally` or `done` will run in the case of cancellation.\
-\9:::\
-\
-\9```lua\
-\9local thing = createSomething()\
-\
-\9doSomethingWith(thing)\
-\9\9:andThen(function()\
-\9\9\9print(\"It worked!\")\
-\9\9\9-- do something..\
-\9\9end)\
-\9\9:catch(function()\
-\9\9\9warn(\"Oh no it failed!\")\
-\9\9end)\
-\9\9:finally(function()\
-\9\9\9-- either way, destroy thing\
-\
-\9\9\9thing:Destroy()\
-\9\9end)\
-\
-\9```\
-\
-\9@param finallyHandler (status: Status) -> ...any\
-\9@return Promise<...any>\
-]=]\
 function Promise.prototype:finally(finallyHandler)\
-\9assert(finallyHandler == nil or isCallable(finallyHandler), string.format(ERROR_NON_FUNCTION, \"Promise:finally\"))\
+\9assert(\
+\9\9finallyHandler == nil or type(finallyHandler) == \"function\",\
+\9\9string.format(ERROR_NON_FUNCTION, \"Promise:finally\")\
+\9)\
 \9return self:_finally(debug.traceback(nil, 2), finallyHandler)\
 end\
 \
---[=[\
-\9Same as `andThenCall`, except for `finally`.\
-\
-\9Attaches a `finally` handler to this Promise that calls the given callback with the predefined arguments.\
-\
-\9@param callback (...: any) -> any\
-\9@param ...? any -- Additional arguments which will be passed to `callback`\
-\9@return Promise\
-]=]\
+--[[\
+\9Calls a callback on `finally` with specific arguments.\
+]]\
 function Promise.prototype:finallyCall(callback, ...)\
-\9assert(isCallable(callback), string.format(ERROR_NON_FUNCTION, \"Promise:finallyCall\"))\
+\9assert(type(callback) == \"function\", string.format(ERROR_NON_FUNCTION, \"Promise:finallyCall\"))\
 \9local length, values = pack(...)\
 \9return self:_finally(debug.traceback(nil, 2), function()\
 \9\9return callback(unpack(values, 1, length))\
 \9end)\
 end\
 \
---[=[\
-\9Attaches a `finally` handler to this Promise that discards the resolved value and returns the given value from it.\
-\
-\9```lua\
-\9\9promise:finallyReturn(\"some\", \"values\")\
-\9```\
-\
-\9This is sugar for\
-\
-\9```lua\
-\9\9promise:finally(function()\
-\9\9\9return \"some\", \"values\"\
-\9\9end)\
-\9```\
-\
-\9@param ... any -- Values to return from the function\
-\9@return Promise\
-]=]\
+--[[\
+\9Shorthand for a finally handler that returns the given value.\
+]]\
 function Promise.prototype:finallyReturn(...)\
 \9local length, values = pack(...)\
 \9return self:_finally(debug.traceback(nil, 2), function()\
@@ -11652,62 +11604,31 @@ function Promise.prototype:finallyReturn(...)\
 \9end)\
 end\
 \
---[=[\
-\9Set a handler that will be called only if the Promise resolves or is cancelled. This method is similar to `finally`, except it doesn't catch rejections.\
-\
-\9:::caution\
-\9`done` should be reserved specifically when you want to perform some operation after the Promise is finished (like `finally`), but you don't want to consume rejections (like in <a href=\"/roblox-lua-promise/lib/Examples.html#cancellable-animation-sequence\">this example</a>). You should use `andThen` instead if you only care about the Resolved case.\
-\9:::\
-\
-\9:::warning\
-\9Like `finally`, if the Promise is cancelled, any Promises chained off of it with `andThen` won't run. Only Promises chained with `done` and `finally` will run in the case of cancellation.\
-\9:::\
-\
-\9Returns a new promise chained from this promise.\
-\
-\9@param doneHandler (status: Status) -> ...any\
-\9@return Promise<...any>\
-]=]\
-function Promise.prototype:done(doneHandler)\
-\9assert(doneHandler == nil or isCallable(doneHandler), string.format(ERROR_NON_FUNCTION, \"Promise:done\"))\
-\9return self:_finally(debug.traceback(nil, 2), doneHandler, true)\
+--[[\
+\9Similar to finally, except rejections are propagated through it.\
+]]\
+function Promise.prototype:done(finallyHandler)\
+\9assert(\
+\9\9finallyHandler == nil or type(finallyHandler) == \"function\",\
+\9\9string.format(ERROR_NON_FUNCTION, \"Promise:done\")\
+\9)\
+\9return self:_finally(debug.traceback(nil, 2), finallyHandler, true)\
 end\
 \
---[=[\
-\9Same as `andThenCall`, except for `done`.\
-\
-\9Attaches a `done` handler to this Promise that calls the given callback with the predefined arguments.\
-\
-\9@param callback (...: any) -> any\
-\9@param ...? any -- Additional arguments which will be passed to `callback`\
-\9@return Promise\
-]=]\
+--[[\
+\9Calls a callback on `done` with specific arguments.\
+]]\
 function Promise.prototype:doneCall(callback, ...)\
-\9assert(isCallable(callback), string.format(ERROR_NON_FUNCTION, \"Promise:doneCall\"))\
+\9assert(type(callback) == \"function\", string.format(ERROR_NON_FUNCTION, \"Promise:doneCall\"))\
 \9local length, values = pack(...)\
 \9return self:_finally(debug.traceback(nil, 2), function()\
 \9\9return callback(unpack(values, 1, length))\
 \9end, true)\
 end\
 \
---[=[\
-\9Attaches a `done` handler to this Promise that discards the resolved value and returns the given value from it.\
-\
-\9```lua\
-\9\9promise:doneReturn(\"some\", \"values\")\
-\9```\
-\
-\9This is sugar for\
-\
-\9```lua\
-\9\9promise:done(function()\
-\9\9\9return \"some\", \"values\"\
-\9\9end)\
-\9```\
-\
-\9@param ... any -- Values to return from the function\
-\9@return Promise\
-]=]\
+--[[\
+\9Shorthand for a done handler that returns the given value.\
+]]\
 function Promise.prototype:doneReturn(...)\
 \9local length, values = pack(...)\
 \9return self:_finally(debug.traceback(nil, 2), function()\
@@ -11715,13 +11636,11 @@ function Promise.prototype:doneReturn(...)\
 \9end, true)\
 end\
 \
---[=[\
-\9Yields the current thread until the given Promise completes. Returns the Promise's status, followed by the values that the promise resolved or rejected with.\
+--[[\
+\9Yield until the promise is completed.\
 \
-\9@yields\
-\9@return Status -- The Status representing the fate of the Promise\
-\9@return ...any -- The values the Promise resolved or rejected with.\
-]=]\
+\9This matches the execution model of normal Roblox functions.\
+]]\
 function Promise.prototype:awaitStatus()\
 \9self._unhandledRejection = false\
 \
@@ -11749,27 +11668,9 @@ local function awaitHelper(status, ...)\
 \9return status == Promise.Status.Resolved, ...\
 end\
 \
---[=[\
-\9Yields the current thread until the given Promise completes. Returns true if the Promise resolved, followed by the values that the promise resolved or rejected with.\
-\
-\9:::caution\
-\9If the Promise gets cancelled, this function will return `false`, which is indistinguishable from a rejection. If you need to differentiate, you should use [[Promise.awaitStatus]] instead.\
-\9:::\
-\
-\9```lua\
-\9\9local worked, value = getTheValue():await()\
-\
-\9if worked then\
-\9\9print(\"got\", value)\
-\9else\
-\9\9warn(\"it failed\")\
-\9end\
-\9```\
-\
-\9@yields\
-\9@return boolean -- `true` if the Promise successfully resolved\
-\9@return ...any -- The values the Promise resolved or rejected with.\
-]=]\
+--[[\
+\9Calls awaitStatus internally, returns (isResolved, values...)\
+]]\
 function Promise.prototype:await()\
 \9return awaitHelper(self:awaitStatus())\
 end\
@@ -11782,31 +11683,10 @@ local function expectHelper(status, ...)\
 \9return ...\
 end\
 \
---[=[\
-\9Yields the current thread until the given Promise completes. Returns the values that the promise resolved with.\
-\
-\9```lua\
-\9local worked = pcall(function()\
-\9\9print(\"got\", getTheValue():expect())\
-\9end)\
-\
-\9if not worked then\
-\9\9warn(\"it failed\")\
-\9end\
-\9```\
-\
-\9This is essentially sugar for:\
-\
-\9```lua\
-\9select(2, assert(promise:await()))\
-\9```\
-\
-\9**Errors** if the Promise rejects or gets cancelled.\
-\
-\9@error any -- Errors with the rejection value if this Promise rejects or gets cancelled.\
-\9@yields\
-\9@return ...any -- The values the Promise resolved with.\
-]=]\
+--[[\
+\9Calls await and only returns if the Promise resolves.\
+\9Throws if the Promise rejects or gets cancelled.\
+]]\
 function Promise.prototype:expect()\
 \9return expectHelper(self:awaitStatus())\
 end\
@@ -11844,7 +11724,8 @@ function Promise.prototype:_resolve(...)\
 \9\9-- Without this warning, arguments sometimes mysteriously disappear\
 \9\9if select(\"#\", ...) > 1 then\
 \9\9\9local message = string.format(\
-\9\9\9\9\"When returning a Promise from andThen, extra arguments are \" .. \"discarded! See:\\n\\n%s\",\
+\9\9\9\9\"When returning a Promise from andThen, extra arguments are \" ..\
+\9\9\9\9\"discarded! See:\\n\\n%s\",\
 \9\9\9\9self._source\
 \9\9\9)\
 \9\9\9warn(message)\
@@ -11852,33 +11733,36 @@ function Promise.prototype:_resolve(...)\
 \
 \9\9local chainedPromise = ...\
 \
-\9\9local promise = chainedPromise:andThen(function(...)\
-\9\9\9self:_resolve(...)\
-\9\9end, function(...)\
-\9\9\9local maybeRuntimeError = chainedPromise._values[1]\
+\9\9local promise = chainedPromise:andThen(\
+\9\9\9function(...)\
+\9\9\9\9self:_resolve(...)\
+\9\9\9end,\
+\9\9\9function(...)\
+\9\9\9\9local maybeRuntimeError = chainedPromise._values[1]\
 \
-\9\9\9-- Backwards compatibility < v2\
-\9\9\9if chainedPromise._error then\
-\9\9\9\9maybeRuntimeError = Error.new({\
-\9\9\9\9\9error = chainedPromise._error,\
-\9\9\9\9\9kind = Error.Kind.ExecutionError,\
-\9\9\9\9\9context = \"[No stack trace available as this Promise originated from an older version of the Promise library (< v2)]\",\
-\9\9\9\9})\
+\9\9\9\9-- Backwards compatibility < v2\
+\9\9\9\9if chainedPromise._error then\
+\9\9\9\9\9maybeRuntimeError = Error.new({\
+\9\9\9\9\9\9error = chainedPromise._error,\
+\9\9\9\9\9\9kind = Error.Kind.ExecutionError,\
+\9\9\9\9\9\9context = \"[No stack trace available as this Promise originated from an older version of the Promise library (< v2)]\",\
+\9\9\9\9\9})\
+\9\9\9\9end\
+\
+\9\9\9\9if Error.isKind(maybeRuntimeError, Error.Kind.ExecutionError) then\
+\9\9\9\9\9return self:_reject(maybeRuntimeError:extend({\
+\9\9\9\9\9\9error = \"This Promise was chained to a Promise that errored.\",\
+\9\9\9\9\9\9trace = \"\",\
+\9\9\9\9\9\9context = string.format(\
+\9\9\9\9\9\9\9\"The Promise at:\\n\\n%s\\n...Rejected because it was chained to the following Promise, which encountered an error:\\n\",\
+\9\9\9\9\9\9\9self._source\
+\9\9\9\9\9\9),\
+\9\9\9\9\9}))\
+\9\9\9\9end\
+\
+\9\9\9\9self:_reject(...)\
 \9\9\9end\
-\
-\9\9\9if Error.isKind(maybeRuntimeError, Error.Kind.ExecutionError) then\
-\9\9\9\9return self:_reject(maybeRuntimeError:extend({\
-\9\9\9\9\9error = \"This Promise was chained to a Promise that errored.\",\
-\9\9\9\9\9trace = \"\",\
-\9\9\9\9\9context = string.format(\
-\9\9\9\9\9\9\"The Promise at:\\n\\n%s\\n...Rejected because it was chained to the following Promise, which encountered an error:\\n\",\
-\9\9\9\9\9\9self._source\
-\9\9\9\9\9),\
-\9\9\9\9}))\
-\9\9\9end\
-\
-\9\9\9self:_reject(...)\
-\9\9end)\
+\9\9)\
 \
 \9\9if promise._status == Promise.Status.Cancelled then\
 \9\9\9self:cancel()\
@@ -11933,11 +11817,11 @@ function Promise.prototype:_reject(...)\
 \9\9\9end\
 \
 \9\9\9-- Build a reasonable message\
-\9\9\9local message = string.format(\"Unhandled Promise rejection:\\n\\n%s\\n\\n%s\", err, self._source)\
-\
-\9\9\9for _, callback in ipairs(Promise._unhandledRejectionCallbacks) do\
-\9\9\9\9task.spawn(callback, self, unpack(self._values, 1, self._valuesLength))\
-\9\9\9end\
+\9\9\9local message = string.format(\
+\9\9\9\9\"Unhandled Promise rejection:\\n\\n%s\\n\\n%s\",\
+\9\9\9\9err,\
+\9\9\9\9self._source\
+\9\9\9)\
 \
 \9\9\9if Promise.TEST then\
 \9\9\9\9-- Don't spam output when we're running tests.\
@@ -11975,25 +11859,13 @@ function Promise.prototype:_finalize()\
 \9end\
 end\
 \
---[=[\
-\9Chains a Promise from this one that is resolved if this Promise is already resolved, and rejected if it is not resolved at the time of calling `:now()`. This can be used to ensure your `andThen` handler occurs on the same frame as the root Promise execution.\
-\
-\9```lua\
-\9doSomething()\
-\9\9:now()\
-\9\9:andThen(function(value)\
-\9\9\9print(\"Got\", value, \"synchronously.\")\
-\9\9end)\
-\9```\
-\
-\9If this Promise is still running, Rejected, or Cancelled, the Promise returned from `:now()` will reject with the `rejectionValue` if passed, otherwise with a `Promise.Error(Promise.Error.Kind.NotResolvedInTime)`. This can be checked with [[Error.isKind]].\
-\
-\9@param rejectionValue? any -- The value to reject with if the Promise isn't resolved\
-\9@return Promise\
-]=]\
+--[[\
+\9Chains a Promise from this one that is resolved if this Promise is\
+\9resolved, and rejected if it is not resolved.\
+]]\
 function Promise.prototype:now(rejectionValue)\
 \9local traceback = debug.traceback(nil, 2)\
-\9if self._status == Promise.Status.Resolved then\
+\9if self:getStatus() == Promise.Status.Resolved then\
 \9\9return self:_andThen(traceback, function(...)\
 \9\9\9return ...\
 \9\9end)\
@@ -12006,40 +11878,14 @@ function Promise.prototype:now(rejectionValue)\
 \9end\
 end\
 \
---[=[\
-\9Repeatedly calls a Promise-returning function up to `times` number of times, until the returned Promise resolves.\
-\
-\9If the amount of retries is exceeded, the function will return the latest rejected Promise.\
-\
-\9```lua\
-\9local function canFail(a, b, c)\
-\9\9return Promise.new(function(resolve, reject)\
-\9\9\9-- do something that can fail\
-\
-\9\9\9local failed, thing = doSomethingThatCanFail(a, b, c)\
-\
-\9\9\9if failed then\
-\9\9\9\9reject(\"it failed\")\
-\9\9\9else\
-\9\9\9\9resolve(thing)\
-\9\9\9end\
-\9\9end)\
-\9end\
-\
-\9local MAX_RETRIES = 10\
-\9local value = Promise.retry(canFail, MAX_RETRIES, \"foo\", \"bar\", \"baz\") -- args to send to canFail\
-\9```\
-\
-\9@since 3.0.0\
-\9@param callback (...: P) -> Promise<T>\
-\9@param times number\
-\9@param ...? P\
-]=]\
+--[[\
+\9Retries a Promise-returning callback N times until it succeeds.\
+]]\
 function Promise.retry(callback, times, ...)\
-\9assert(isCallable(callback), \"Parameter #1 to Promise.retry must be a function\")\
+\9assert(type(callback) == \"function\", \"Parameter #1 to Promise.retry must be a function\")\
 \9assert(type(times) == \"number\", \"Parameter #2 to Promise.retry must be a number\")\
 \
-\9local args, length = { ... }, select(\"#\", ...)\
+\9local args, length = {...}, select(\"#\", ...)\
 \
 \9return Promise.resolve(callback(...)):catch(function(...)\
 \9\9if times > 0 then\
@@ -12050,66 +11896,15 @@ function Promise.retry(callback, times, ...)\
 \9end)\
 end\
 \
---[=[\
-\9Repeatedly calls a Promise-returning function up to `times` number of times, waiting `seconds` seconds between each\
-\9retry, until the returned Promise resolves.\
-\
-\9If the amount of retries is exceeded, the function will return the latest rejected Promise.\
-\
-\9@since v3.2.0\
-\9@param callback (...: P) -> Promise<T>\
-\9@param times number\
-\9@param seconds number\
-\9@param ...? P\
-]=]\
-function Promise.retryWithDelay(callback, times, seconds, ...)\
-\9assert(isCallable(callback), \"Parameter #1 to Promise.retry must be a function\")\
-\9assert(type(times) == \"number\", \"Parameter #2 (times) to Promise.retry must be a number\")\
-\9assert(type(seconds) == \"number\", \"Parameter #3 (seconds) to Promise.retry must be a number\")\
-\
-\9local args, length = { ... }, select(\"#\", ...)\
-\
-\9return Promise.resolve(callback(...)):catch(function(...)\
-\9\9if times > 0 then\
-\9\9\9Promise.delay(seconds):await()\
-\
-\9\9\9return Promise.retryWithDelay(callback, times - 1, seconds, unpack(args, 1, length))\
-\9\9else\
-\9\9\9return Promise.reject(...)\
-\9\9end\
-\9end)\
-end\
-\
---[=[\
-\9Converts an event into a Promise which resolves the next time the event fires.\
-\
-\9The optional `predicate` callback, if passed, will receive the event arguments and should return `true` or `false`, based on if this fired event should resolve the Promise or not. If `true`, the Promise resolves. If `false`, nothing happens and the predicate will be rerun the next time the event fires.\
-\
-\9The Promise will resolve with the event arguments.\
-\
-\9:::tip\
-\9This function will work given any object with a `Connect` method. This includes all Roblox events.\
-\9:::\
-\
-\9```lua\
-\9-- Creates a Promise which only resolves when `somePart` is touched\
-\9-- by a part named `\"Something specific\"`.\
-\9return Promise.fromEvent(somePart.Touched, function(part)\
-\9\9return part.Name == \"Something specific\"\
-\9end)\
-\9```\
-\
-\9@since 3.0.0\
-\9@param event Event -- Any object with a `Connect` method. This includes all Roblox events.\
-\9@param predicate? (...: P) -> boolean -- A function which determines if the Promise should resolve with the given value, or wait for the next event to check again.\
-\9@return Promise<P>\
-]=]\
+--[[\
+\9Converts an event into a Promise with an optional predicate\
+]]\
 function Promise.fromEvent(event, predicate)\
 \9predicate = predicate or function()\
 \9\9return true\
 \9end\
 \
-\9return Promise._new(debug.traceback(nil, 2), function(resolve, _, onCancel)\
+\9return Promise._new(debug.traceback(nil, 2), function(resolve, reject, onCancel)\
 \9\9local connection\
 \9\9local shouldDisconnect = false\
 \
@@ -12142,30 +11937,10 @@ function Promise.fromEvent(event, predicate)\
 \9\9\9return disconnect()\
 \9\9end\
 \
-\9\9onCancel(disconnect)\
+\9\9onCancel(function()\
+\9\9\9disconnect()\
+\9\9end)\
 \9end)\
-end\
-\
---[=[\
-\9Registers a callback that runs when an unhandled rejection happens. An unhandled rejection happens when a Promise\
-\9is rejected, and the rejection is not observed with `:catch`.\
-\
-\9The callback is called with the actual promise that rejected, followed by the rejection values.\
-\
-\9@since v3.2.0\
-\9@param callback (promise: Promise, ...: any) -- A callback that runs when an unhandled rejection happens.\
-\9@return () -> () -- Function that unregisters the `callback` when called\
-]=]\
-function Promise.onUnhandledRejection(callback)\
-\9table.insert(Promise._unhandledRejectionCallbacks, callback)\
-\
-\9return function()\
-\9\9local index = table.find(Promise._unhandledRejectionCallbacks, callback)\
-\
-\9\9if index then\
-\9\9\9table.remove(Promise._unhandledRejectionCallbacks, index)\
-\9\9end\
-\9end\
 end\
 \
 return Promise\
